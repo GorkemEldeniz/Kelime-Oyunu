@@ -17,7 +17,10 @@ export default async function ProfilePage(props: ProfilePageProps) {
 	// Convert Date objects to ISO strings
 	const formattedHistory = games.map((game: GameRecord) => ({
 		...game,
-		playedAt: game.playedAt.toISOString(),
+		playedAt:
+			game.playedAt instanceof Date
+				? game.playedAt.toISOString()
+				: game.playedAt,
 	}));
 
 	return (
