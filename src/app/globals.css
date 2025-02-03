@@ -61,12 +61,3 @@
 		@apply bg-gradient-to-br from-background to-secondary/50;
 	}
 }
-
-.hexagon-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(4rem, 1fr));
-	gap: 0.5rem;
-	justify-items: center;
-	align-items: center;
-	padding: 2rem 0;
-}
