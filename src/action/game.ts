@@ -221,11 +221,27 @@ export async function getAllTimeStandings(page = 1) {
 					userId: true,
 				},
 			})
-			.then((result) => result.length),
+			.then((result: { length: number }) => result.length),
 	]);
 
 	// Get usernames for the records
-	const userIds = records.map((r) => r.userId);
+	interface GameRecord {
+		userId: number;
+		_avg: {
+			score: number | null;
+			timeLeft: number | null;
+		};
+		_count: {
+			score: number;
+		};
+	}
+
+	interface User {
+		id: number;
+		username: string;
+	}
+
+	const userIds = records.map((record: GameRecord) => record.userId);
 	const users = await db.user.findMany({
 		where: {
 			id: {
@@ -240,18 +256,21 @@ export async function getAllTimeStandings(page = 1) {
 
 	// Combine records with usernames and filter out records without usernames
 	const standings = records
-		.map((record) => ({
+		.map((record: GameRecord) => ({
 			...record,
-			username: users.find((u) => u.id === record.userId)?.username,
+			username: users.find((user: User) => user.id === record.userId)?.username,
 			_avg: {
 				score: record._avg.score || 0,
 				timeLeft: record._avg.timeLeft || 0,
 			},
 		}))
 		.filter(
-			(
-				record
-			): record is {
+			(record: {
+				userId: number;
+				username: string | undefined;
+				_avg: { score: number; timeLeft: number };
+				_count: { score: number };
+			}): record is {
 				userId: number;
 				username: string;
 				_avg: { score: number; timeLeft: number };

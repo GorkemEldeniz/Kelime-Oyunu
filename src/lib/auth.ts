@@ -110,9 +110,10 @@ const isJWTPayload = (payload: unknown): payload is JWTPayload => {
 		typeof payload === "object" &&
 		payload !== null &&
 		"userId" in payload &&
-		typeof (payload as any).userId === "number" &&
+		typeof (payload as { userId: number }).userId === "number" &&
 		"type" in payload &&
-		((payload as any).type === "ACCESS" || (payload as any).type === "REFRESH")
+		((payload as { type: string }).type === "ACCESS" ||
+			(payload as { type: string }).type === "REFRESH")
 	);
 };
 
