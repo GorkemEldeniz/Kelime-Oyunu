@@ -3,9 +3,13 @@ import { ProfileClient } from "@/components/profile/profile-client";
 
 export const revalidate = 60; // Revalidate every minute
 
-async function ProfilePage({ params }: { params: { page: string } }) {
-	const { page } = await params;
-	const { games, totalPages } = await getUserGameHistory(Number(page) ?? 1);
+async function ProfilePage({
+	searchParams,
+}: {
+	searchParams: { page: string };
+}) {
+	const { page } = searchParams;
+	const { games, totalPages } = await getUserGameHistory(Number(page) || 1);
 
 	// Convert Date objects to ISO strings
 	const formattedHistory = games.map((game) => ({
@@ -17,7 +21,7 @@ async function ProfilePage({ params }: { params: { page: string } }) {
 		<ProfileClient
 			gameHistory={formattedHistory}
 			totalPages={totalPages}
-			currentPage={page}
+			currentPage={Number(page)}
 		/>
 	);
 }

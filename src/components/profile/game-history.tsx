@@ -31,7 +31,7 @@ export function GameHistory({ games }: GameHistoryProps) {
 
 				{games.length === 0 && (
 					<div className='text-center text-muted-foreground py-8'>
-						You haven&apos;t played any games yet.
+						Oyun Geçmişinizde oyun bulunamadı.
 					</div>
 				)}
 			</div>

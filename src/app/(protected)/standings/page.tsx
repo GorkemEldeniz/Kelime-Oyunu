@@ -4,20 +4,21 @@ import { StandingsClient } from "@/components/standings/standings-client";
 export const revalidate = 60; // Revalidate every minute
 
 interface StandingsPageProps {
-	searchParams: {
+	searchParams: Promise<{
 		page?: string;
-	};
+	}>;
 }
 
-async function StandingsPage({ searchParams }: StandingsPageProps) {
-	const page = Number(searchParams.page) || 1;
+async function StandingsPage(props: StandingsPageProps) {
+    const searchParams = await props.searchParams;
+    const page = Number(searchParams.page) || 1;
 
-	const [dailyData, allTimeData] = await Promise.all([
+    const [dailyData, allTimeData] = await Promise.all([
 		getDailyStandings(page),
 		getAllTimeStandings(page),
 	]);
 
-	return (
+    return (
 		<StandingsClient
 			dailyStandings={dailyData.standings}
 			allTimeStandings={allTimeData.standings}

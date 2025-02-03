@@ -51,16 +51,6 @@ export function GameClientContent({
 		return <EndGameBoard gameRecord={lastGameRecord} />;
 	}
 
-	if (!questions || questions.length === 0) {
-		return (
-			<div className='h-full flex items-center justify-center'>
-				<div className='animate-pulse text-lg text-muted-foreground'>
-					Loading questions...
-				</div>
-			</div>
-		);
-	}
-
 	if (isGameOver) {
 		return <EndGameBoard />;
 	}

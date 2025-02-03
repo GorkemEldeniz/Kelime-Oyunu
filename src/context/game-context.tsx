@@ -18,8 +18,8 @@ type GameContextType = {
 	togglePause: () => void;
 	revealLetter: (index: number) => void;
 	nextQuestion: () => void;
-	endGame: () => void;
 	setScore: (score: number) => void;
+	setIsGameOver: (isGameOver: boolean) => void;
 };
 
 export const GameContext = createContext<GameContextType>(
@@ -41,7 +41,7 @@ export const GameProvider = ({
 	initialQuestions: Question[];
 }) => {
 	// Core game state
-	const [index, setIndex] = useState(13);
+	const [index, setIndex] = useState(0);
 	const [score, setScore] = useState(0);
 	const [totalTime, setTotalTime] = useState(GAME_CONFIG.TOTAL_TIME);
 	const [respondTime, setRespondTime] = useState(GAME_CONFIG.RESPOND_TIME);
@@ -132,10 +132,9 @@ export const GameProvider = ({
 			setIsResponding(false);
 			setIsPaused(false);
 		}
-	};
-
-	const endGame = () => {
-		setIsGameOver(true);
+		if (index === questions.length - 1) {
+			setIsGameOver(true);
+		}
 	};
 
 	return (
@@ -155,8 +154,8 @@ export const GameProvider = ({
 				togglePause,
 				revealLetter,
 				nextQuestion,
-				endGame,
 				setScore,
+				setIsGameOver,
 			}}
 		>
 			{children}

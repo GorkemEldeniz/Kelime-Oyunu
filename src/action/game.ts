@@ -61,11 +61,11 @@ export async function saveGameRecord(data: {
 	questionsCount: number;
 }) {
 	const session = await auth();
-	if (!session) throw new Error("Not authenticated");
+	if (!session) return null;
 
 	// Check if user has already played today
 	const hasPlayed = await hasPlayedToday();
-	if (hasPlayed) throw new Error("Already played today");
+	if (hasPlayed) return null;
 
 	// Create a new UTC date for the current time
 	const now = new Date();
