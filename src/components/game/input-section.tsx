@@ -22,7 +22,7 @@ export function InputSection({
 }: InputSectionProps) {
 	const [input, setInput] = useState("");
 	const {
-		endGame,
+		setIsGameOver,
 		nextQuestion,
 		isResponding,
 		isPaused,
@@ -30,6 +30,7 @@ export function InputSection({
 		togglePause,
 		stopResponding,
 		setScore,
+		score,
 	} = useGameContext();
 	const [isError, setIsError] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
@@ -48,12 +49,11 @@ export function InputSection({
 			input.toLocaleLowerCase("tr").trim() === word.toLocaleLowerCase("tr")
 		) {
 			// update score
-			setScore(
-				(prev: number) =>
-					prev + calculateWordScore(word.length, revealedIndexes.length)
-			);
+			const newScore =
+				score + calculateWordScore(word.length, revealedIndexes.length);
+			setScore(newScore);
 			if (isLastQuestion) {
-				endGame();
+				setIsGameOver(true);
 			} else {
 				// Reveal all letters and pause the game
 				word.split("").forEach((_, index) => {
@@ -72,12 +72,13 @@ export function InputSection({
 		word,
 		isResponding,
 		isLastQuestion,
-		endGame,
 		togglePause,
 		onRevealLetter,
 		revealedIndexes,
 		stopResponding,
 		setScore,
+		score,
+		setIsGameOver,
 	]);
 
 	const handleNextQuestion = () => {
