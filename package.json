@@ -11,7 +11,8 @@
 		"db:generate": "npx prisma generate",
 		"db:migrate": "npx prisma migrate dev",
 		"db:studio": "npx prisma studio",
-		"seed": "ts-node --project src/scripts/tsconfig.json src/scripts/seed-game-records.ts"
+		"seed": "ts-node --project src/scripts/tsconfig.json src/scripts/seed-game-records.ts",
+		"postinstall": "prisma generate"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^3.10.0",
