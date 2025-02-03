@@ -1,18 +1,21 @@
 import { getUserGameHistory } from "@/action/game";
 import { ProfileClient } from "@/components/profile/profile-client";
-
+import type { GameRecord } from "@/types/game";
 export const revalidate = 60; // Revalidate every minute
 
-async function ProfilePage({
-	searchParams,
-}: {
-	searchParams: { page: string };
-}) {
-	const { page } = searchParams;
-	const { games, totalPages } = await getUserGameHistory(Number(page) || 1);
+interface ProfilePageProps {
+	searchParams: Promise<{
+		page?: string;
+	}>;
+}
+
+export default async function ProfilePage(props: ProfilePageProps) {
+	const searchParams = await props.searchParams;
+	const page = Number(searchParams.page) || 1;
+	const { games, totalPages } = await getUserGameHistory(page);
 
 	// Convert Date objects to ISO strings
-	const formattedHistory = games.map((game) => ({
+	const formattedHistory = games.map((game: GameRecord) => ({
 		...game,
 		playedAt: game.playedAt.toISOString(),
 	}));
@@ -21,9 +24,7 @@ async function ProfilePage({
 		<ProfileClient
 			gameHistory={formattedHistory}
 			totalPages={totalPages}
-			currentPage={Number(page)}
+			currentPage={page}
 		/>
 	);
 }
-
-export default ProfilePage;

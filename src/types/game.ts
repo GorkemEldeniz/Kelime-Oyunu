@@ -37,5 +37,5 @@ export interface GameRecord {
 	timeLeft: number;
 	questionsCount: number;
 	averageScore: number;
-	playedAt: string;
+	playedAt: Date;
 }
