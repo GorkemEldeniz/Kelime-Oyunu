@@ -1,23 +1,15 @@
 "use server";
 
+import { getTurkishDayBoundaries, getTurkishTime } from "@/helpers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
-
 // Check if user has played today
 export async function hasPlayedToday() {
 	const session = await auth();
 	if (!session) return false;
 
-	const now = new Date();
-	// Create UTC date for today at 00:00:00
-	const today = new Date(
-		Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
-	);
-	// Create UTC date for tomorrow at 00:00:00
-	const tomorrow = new Date(
-		Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1)
-	);
+	const { today, tomorrow } = getTurkishDayBoundaries();
 
 	const record = await db.gameRecord.findFirst({
 		where: {
@@ -67,19 +59,8 @@ export async function saveGameRecord(data: {
 	const hasPlayed = await hasPlayedToday();
 	if (hasPlayed) return null;
 
-	// Create a new UTC date for the current time
-	const now = new Date();
-	const playedAt = new Date(
-		Date.UTC(
-			now.getUTCFullYear(),
-			now.getUTCMonth(),
-			now.getUTCDate(),
-			now.getUTCHours(),
-			now.getUTCMinutes(),
-			now.getUTCSeconds(),
-			now.getUTCMilliseconds()
-		)
-	);
+	// Create a new record with Turkish local time
+	const playedAt = getTurkishTime();
 
 	const record = await db.gameRecord.create({
 		data: {
@@ -88,7 +69,7 @@ export async function saveGameRecord(data: {
 			timeLeft: data.timeLeft,
 			questionsCount: data.questionsCount,
 			averageScore: data.score / data.questionsCount,
-			playedAt, // Use UTC date
+			playedAt,
 		},
 	});
 
@@ -133,13 +114,7 @@ export async function getUserGameHistory(page = 1) {
 
 // Get daily standings
 export async function getDailyStandings(page = 1) {
-	const now = new Date();
-	const today = new Date(
-		Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
-	);
-	const tomorrow = new Date(
-		Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1)
-	);
+	const { today, tomorrow } = getTurkishDayBoundaries();
 
 	const itemsPerPage = 10;
 	const skip = (page - 1) * itemsPerPage;
@@ -159,10 +134,7 @@ export async function getDailyStandings(page = 1) {
 					},
 				},
 			},
-			orderBy: [
-				{ score: "desc" },
-				{ timeLeft: "desc" }, // If scores are equal, more time left wins
-			],
+			orderBy: [{ score: "desc" }, { timeLeft: "desc" }],
 			take: itemsPerPage,
 			skip,
 		}),

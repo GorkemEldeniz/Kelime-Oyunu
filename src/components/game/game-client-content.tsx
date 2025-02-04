@@ -1,23 +1,13 @@
 "use client";
 
 import { saveGameRecord } from "@/action/game";
-import { EndGameBoard } from "@/components/game/end-game-board";
 import { GameStats } from "@/components/game/game-stats";
 import { InputSection } from "@/components/game/input-section";
 import { WordDisplay } from "@/components/game/word-display";
 import { useGameContext } from "@/context/game-context";
-import { GameRecord } from "@/types/game";
 import { useEffect } from "react";
 
-interface GameClientContentProps {
-	hasPlayed: boolean;
-	lastGameRecord: GameRecord | null;
-}
-
-export function GameClientContent({
-	hasPlayed,
-	lastGameRecord,
-}: GameClientContentProps) {
+export function GameClientContent() {
 	const {
 		index,
 		score,
@@ -45,15 +35,7 @@ export function GameClientContent({
 		};
 
 		saveGame();
-	}, [isGameOver, score, totalTime, questions]);
-
-	if (hasPlayed && lastGameRecord) {
-		return <EndGameBoard gameRecord={lastGameRecord} />;
-	}
-
-	if (isGameOver) {
-		return <EndGameBoard />;
-	}
+	}, [isGameOver]);
 
 	const { word, mean } = questions[index];
 

@@ -13,10 +13,10 @@ export function WordDisplay({ hiddenWord, mean }: WordDisplayProps) {
 	return (
 		<div className='w-full space-y-4'>
 			{/* Word Display */}
-			<div className='relative p-2 sm:p-4 rounded-lg border bg-card/50'>
+			<div className='relative p-2 sm:p-4 rounded-lg border shadow-sm bg-card/50'>
 				{/* Letters Grid */}
-				<div className='relative w-full max-w-full overflow-x-auto scrollbar-none'>
-					<div className='flex sm:gap-2 justify-center min-w-full pb-1'>
+				<div className='relative w-full'>
+					<div className='grid grid-flow-col auto-cols-fr gap-1.5 sm:gap-3 max-w-[calc(100vw-2rem)] mx-auto'>
 						{hiddenWord.map((letter, index) => (
 							<motion.div
 								key={index}
@@ -29,10 +29,10 @@ export function WordDisplay({ hiddenWord, mean }: WordDisplayProps) {
 									damping: 20,
 								}}
 								className={cn(
-									"size-8 sm:size-12 flex items-center justify-center rounded-md border-2 text-lg sm:text-2xl font-bold uppercase shrink-0",
+									"aspect-square flex items-center justify-center rounded-md border-2 text-xl sm:text-3xl font-bold uppercase shadow-sm",
 									letter === " "
-										? "bg-background/30 border-primary/20"
-										: "bg-background/50 border-primary/40"
+										? "bg-background/80 border-primary/30"
+										: "bg-background border-primary/50"
 								)}
 							>
 								{letter}
@@ -47,7 +47,7 @@ export function WordDisplay({ hiddenWord, mean }: WordDisplayProps) {
 				initial={{ opacity: 0, y: 10 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ delay: 0.3 }}
-				className='relative p-3 sm:p-4 rounded-lg border bg-card/50'
+				className='relative p-3 sm:p-4 rounded-lg border shadow-sm bg-card/50'
 			>
 				<div className='relative'>
 					<h3 className='text-sm font-medium text-muted-foreground mb-1 flex items-center gap-1.5 sm:gap-2'>

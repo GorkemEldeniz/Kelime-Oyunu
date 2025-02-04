@@ -22,7 +22,6 @@ export function InputSection({
 }: InputSectionProps) {
 	const [input, setInput] = useState("");
 	const {
-		setIsGameOver,
 		nextQuestion,
 		isResponding,
 		isPaused,
@@ -48,37 +47,35 @@ export function InputSection({
 			isResponding &&
 			input.toLocaleLowerCase("tr").trim() === word.toLocaleLowerCase("tr")
 		) {
-			// update score
-			const newScore =
-				score + calculateWordScore(word.length, revealedIndexes.length);
+			// Calculate new score first
+			const scoreIncrement = calculateWordScore(
+				word.length,
+				revealedIndexes.length
+			);
+			const newScore = score + scoreIncrement;
+
+			// Stop responding before state updates
+			stopResponding();
+
+			// Update score
 			setScore(newScore);
-			if (isLastQuestion) {
-				setIsGameOver(true);
-			} else {
-				// Reveal all letters and pause the game
-				word.split("").forEach((_, index) => {
-					if (!revealedIndexes.includes(index)) {
-						onRevealLetter(index);
-					}
-				});
-				setInput("");
-				setIsError(false);
-				stopResponding(); // First stop responding
-				togglePause(); // Then pause the game to show next button
-			}
+			// Reveal all letters and pause the game
+			word.split("").forEach((_, index) => {
+				if (!revealedIndexes.includes(index)) {
+					onRevealLetter(index);
+				}
+			});
+			setInput("");
+			setIsError(false);
+			togglePause(); // Then pause the game to show next button
 		}
 	}, [
-		input,
 		word,
-		isResponding,
-		isLastQuestion,
-		togglePause,
 		onRevealLetter,
 		revealedIndexes,
-		stopResponding,
-		setScore,
-		score,
-		setIsGameOver,
+		isLastQuestion,
+		input,
+		isResponding,
 	]);
 
 	const handleNextQuestion = () => {
@@ -135,7 +132,7 @@ export function InputSection({
 								className='min-w-[140px] h-12'
 								onClick={handleNextQuestion}
 							>
-								Sonraki
+								{isLastQuestion ? "Bitir" : "Sonraki"}
 							</Button>
 						) : (
 							<Button

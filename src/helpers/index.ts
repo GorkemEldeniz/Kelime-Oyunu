@@ -68,4 +68,44 @@ function getGoogleOAuthURL() {
 	return `${rootUrl}?${qs.toString()}`;
 }
 
-export { calculateWordScore, formatTime, getGoogleOAuthURL, getQuestions };
+// Helper function to get Turkish local time
+function getTurkishTime(date = new Date()) {
+	return new Date(date.getTime() + 3 * 60 * 60 * 1000); // UTC+3
+}
+
+// Helper function to get Turkish day boundaries
+function getTurkishDayBoundaries() {
+	const now = getTurkishTime();
+	const today = new Date(
+		Date.UTC(
+			now.getUTCFullYear(),
+			now.getUTCMonth(),
+			now.getUTCDate(),
+			-3, // Adjust for UTC+3
+			0,
+			0,
+			0
+		)
+	);
+	const tomorrow = new Date(
+		Date.UTC(
+			now.getUTCFullYear(),
+			now.getUTCMonth(),
+			now.getUTCDate() + 1,
+			-3, // Adjust for UTC+3
+			0,
+			0,
+			0
+		)
+	);
+	return { today, tomorrow };
+}
+
+export {
+	calculateWordScore,
+	formatTime,
+	getGoogleOAuthURL,
+	getQuestions,
+	getTurkishDayBoundaries,
+	getTurkishTime,
+};
