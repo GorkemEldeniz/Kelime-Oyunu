@@ -1,11 +1,15 @@
 "use client";
 
+import { saveGameRecord } from "@/action/game";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useGameContext } from "@/context/game-context";
 import { calculateWordScore } from "@/helpers";
 import { motion } from "framer-motion";
+import { Loader } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 interface InputSectionProps {
 	word: string;
@@ -30,9 +34,23 @@ export function InputSection({
 		stopResponding,
 		setScore,
 		score,
+		totalTime,
+		questions,
 	} = useGameContext();
 	const [isError, setIsError] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
+
+	const { execute: executeSaveGameRecord, status: saveGameRecordStatus } =
+		useAction(saveGameRecord, {
+			onSuccess: () => {
+				toast.success("Oyun kaydedildi");
+			},
+			onError: (error) => {
+				toast.error(
+					error.error.serverError || "Oyun kaydedilirken bir hata oluştu"
+				);
+			},
+		});
 
 	// Focus input when starting to respond
 	useEffect(() => {
@@ -81,6 +99,13 @@ export function InputSection({
 	const handleNextQuestion = () => {
 		setInput(""); // Clear input before moving to next question
 		nextQuestion();
+		if (isLastQuestion) {
+			executeSaveGameRecord({
+				score,
+				timeLeft: totalTime,
+				questionsCount: questions.length,
+			});
+		}
 	};
 
 	const handleRevealLetter = () => {
@@ -127,12 +152,18 @@ export function InputSection({
 					<div className='flex justify-center gap-3'>
 						{isPaused ? (
 							<Button
+								disabled={saveGameRecordStatus === "executing"}
 								type='button'
 								size='lg'
-								className='min-w-[140px] h-12'
 								onClick={handleNextQuestion}
 							>
-								{isLastQuestion ? "Bitir" : "Sonraki"}
+								{saveGameRecordStatus === "executing" ? (
+									<Loader className='mr-2 h-4 w-4 animate-spin' />
+								) : isLastQuestion ? (
+									"Bitir"
+								) : (
+									"Sonraki"
+								)}
 							</Button>
 						) : (
 							<Button

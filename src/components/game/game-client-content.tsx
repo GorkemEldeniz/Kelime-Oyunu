@@ -1,41 +1,12 @@
 "use client";
 
-import { saveGameRecord } from "@/action/game";
 import { GameStats } from "@/components/game/game-stats";
 import { InputSection } from "@/components/game/input-section";
 import { WordDisplay } from "@/components/game/word-display";
 import { useGameContext } from "@/context/game-context";
-import { useEffect } from "react";
 
 export function GameClientContent() {
-	const {
-		index,
-		score,
-		totalTime,
-		questions,
-		revealedIndexes,
-		isGameOver,
-		revealLetter,
-	} = useGameContext();
-
-	// Save game record when game is over
-	useEffect(() => {
-		const saveGame = async () => {
-			if (isGameOver && questions && questions.length > 0) {
-				try {
-					await saveGameRecord({
-						score,
-						timeLeft: totalTime,
-						questionsCount: questions.length,
-					});
-				} catch (error) {
-					console.error("Error saving game record:", error);
-				}
-			}
-		};
-
-		saveGame();
-	}, [isGameOver]);
+	const { index, questions, revealedIndexes, revealLetter } = useGameContext();
 
 	const { word, mean } = questions[index];
 

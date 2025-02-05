@@ -3,7 +3,10 @@
 import { getTurkishDayBoundaries, getTurkishTime } from "@/helpers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { actionClient } from "@/lib/safe-action";
+import { saveGameRecordSchema } from "@/lib/validations/game";
 import { revalidatePath } from "next/cache";
+
 // Check if user has played today
 export async function hasPlayedToday() {
 	const session = await auth();
@@ -47,36 +50,34 @@ export async function getLastGameRecord() {
 }
 
 // Save game record
-export async function saveGameRecord(data: {
-	score: number;
-	timeLeft: number;
-	questionsCount: number;
-}) {
-	const session = await auth();
-	if (!session) return null;
+export const saveGameRecord = actionClient
+	.schema(saveGameRecordSchema)
+	.action(async ({ parsedInput: { score, timeLeft, questionsCount } }) => {
+		const session = await auth();
+		if (!session) return null;
 
-	// Check if user has already played today
-	const hasPlayed = await hasPlayedToday();
-	if (hasPlayed) return null;
+		// Check if user has already played today
+		const hasPlayed = await hasPlayedToday();
+		if (hasPlayed) return null;
 
-	// Create a new record with Turkish local time
-	const playedAt = getTurkishTime();
+		// Create a new record with Turkish local time
+		const playedAt = getTurkishTime();
 
-	const record = await db.gameRecord.create({
-		data: {
-			userId: session.user.id,
-			score: data.score,
-			timeLeft: data.timeLeft,
-			questionsCount: data.questionsCount,
-			averageScore: data.score / data.questionsCount,
-			playedAt,
-		},
+		const record = await db.gameRecord.create({
+			data: {
+				userId: session.user.id,
+				score,
+				timeLeft,
+				questionsCount,
+				averageScore: score / questionsCount,
+				playedAt,
+			},
+		});
+
+		revalidatePath("/game");
+		revalidatePath("/standings");
+		return record;
 	});
-
-	revalidatePath("/game");
-	revalidatePath("/standings");
-	return record;
-}
 
 // Get user's game history
 export async function getUserGameHistory(page = 1) {
