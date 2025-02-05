@@ -15,29 +15,31 @@ export function WordDisplay({ hiddenWord, mean }: WordDisplayProps) {
 			{/* Word Display */}
 			<div className='relative p-2 sm:p-4 rounded-lg border shadow-sm bg-card/50'>
 				{/* Letters Grid */}
-				<div className='relative w-full'>
-					<div className='grid grid-flow-col auto-cols-fr gap-1.5 sm:gap-3 max-w-[calc(100vw-2rem)] mx-auto'>
-						{hiddenWord.map((letter, index) => (
-							<motion.div
-								key={index}
-								initial={{ opacity: 0, scale: 0.8 }}
-								animate={{ opacity: 1, scale: 1 }}
-								transition={{
-									delay: index * 0.1,
-									type: "spring",
-									stiffness: 300,
-									damping: 20,
-								}}
-								className={cn(
-									"aspect-square flex items-center justify-center rounded-md border-2 text-xl sm:text-3xl font-bold uppercase shadow-sm",
-									letter === " "
-										? "bg-background/80 border-primary/30"
-										: "bg-background border-primary/50"
-								)}
-							>
-								{letter}
-							</motion.div>
-						))}
+				<div className='relative w-full overflow-hidden'>
+					<div className='flex justify-center'>
+						<div className='flex gap-1.5 sm:gap-2 px-1 py-2'>
+							{hiddenWord.map((letter, index) => (
+								<motion.div
+									key={index}
+									initial={{ opacity: 0, scale: 0.8 }}
+									animate={{ opacity: 1, scale: 1 }}
+									transition={{
+										delay: index * 0.1,
+										type: "spring",
+										stiffness: 300,
+										damping: 20,
+									}}
+									className={cn(
+										"w-[38px] h-[38px] sm:w-[48px] sm:h-[48px] flex items-center justify-center rounded-md border-2 text-lg sm:text-2xl font-bold uppercase shadow-sm shrink-0",
+										letter === " "
+											? "bg-background/80 border-primary/30"
+											: "bg-background border-primary/50"
+									)}
+								>
+									{letter}
+								</motion.div>
+							))}
+						</div>
 					</div>
 				</div>
 			</div>

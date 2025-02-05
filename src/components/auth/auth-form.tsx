@@ -136,8 +136,11 @@ export function AuthForm({ type, className, ...props }: AuthFormProps) {
 							)}
 						</div>
 						<Button type='submit' disabled={isLoading}>
-							{isLoading && <Loader className='mr-2 h-4 w-4 animate-spin' />}
-							Giriş Yap
+							{isLoading ? (
+								<Loader className='h-4 w-4 animate-spin' />
+							) : (
+								"Giriş Yap"
+							)}
 						</Button>
 					</div>
 				</form>
@@ -219,8 +222,11 @@ export function AuthForm({ type, className, ...props }: AuthFormProps) {
 						)}
 					</div>
 					<Button disabled={isLoading}>
-						{isLoading && <Loader className='mr-2 h-4 w-4 animate-spin' />}
-						Kayıt Ol
+						{isLoading ? (
+							<Loader className='h-4 w-4 animate-spin' />
+						) : (
+							"Kayıt Ol"
+						)}
 					</Button>
 				</div>
 			</form>
