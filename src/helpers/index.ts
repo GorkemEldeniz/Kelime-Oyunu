@@ -70,34 +70,58 @@ function getGoogleOAuthURL() {
 
 // Helper function to get Turkish local time
 function getTurkishTime(date = new Date()) {
-	return new Date(date.getTime() + 3 * 60 * 60 * 1000); // UTC+3
+	// Convert the input date to UTC to standardize
+	const utcDate = new Date(
+		Date.UTC(
+			date.getUTCFullYear(),
+			date.getUTCMonth(),
+			date.getUTCDate(),
+			date.getUTCHours(),
+			date.getUTCMinutes(),
+			date.getUTCSeconds(),
+			date.getUTCMilliseconds()
+		)
+	);
+
+	// Then convert to Turkish time
+	utcDate.setUTCHours(utcDate.getUTCHours() + 3); // Turkey is UTC+3
+	return utcDate;
 }
 
 // Helper function to get Turkish day boundaries
 function getTurkishDayBoundaries() {
-	const now = getTurkishTime();
+	// Get current time in UTC
+	const now = new Date();
+
+	// Convert to Turkish time
+	const turkishDate = getTurkishTime(now);
+
+	// Create UTC midnight for Turkish date
 	const today = new Date(
 		Date.UTC(
-			now.getUTCFullYear(),
-			now.getUTCMonth(),
-			now.getUTCDate(),
-			-3, // Adjust for UTC+3
+			turkishDate.getUTCFullYear(),
+			turkishDate.getUTCMonth(),
+			turkishDate.getUTCDate(),
+			0,
 			0,
 			0,
 			0
 		)
 	);
+
+	// Create tomorrow's UTC midnight
 	const tomorrow = new Date(
 		Date.UTC(
-			now.getUTCFullYear(),
-			now.getUTCMonth(),
-			now.getUTCDate() + 1,
-			-3, // Adjust for UTC+3
+			turkishDate.getUTCFullYear(),
+			turkishDate.getUTCMonth(),
+			turkishDate.getUTCDate() + 1,
+			0,
 			0,
 			0,
 			0
 		)
 	);
+
 	return { today, tomorrow };
 }
 
