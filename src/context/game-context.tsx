@@ -41,7 +41,7 @@ export const GameProvider = ({
 	initialQuestions: Question[];
 }) => {
 	// Core game state
-	const [index, setIndex] = useState(13);
+	const [index, setIndex] = useState(0);
 	const [score, setScore] = useState(0);
 	const [totalTime, setTotalTime] = useState(GAME_CONFIG.TOTAL_TIME);
 	const [respondTime, setRespondTime] = useState(GAME_CONFIG.RESPOND_TIME);
