@@ -1,19 +1,11 @@
 "use client";
 
+import { GameRecord } from "@/types/game";
 import { Trophy } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "../ui/button";
 import { GameHistory } from "./game-history";
 import { StatsOverview } from "./stats-overview";
-
-interface GameRecord {
-	id: number;
-	score: number;
-	timeLeft: number;
-	questionsCount: number;
-	averageScore: number;
-	playedAt: string;
-}
 
 interface ProfileClientProps {
 	gameHistory: GameRecord[];

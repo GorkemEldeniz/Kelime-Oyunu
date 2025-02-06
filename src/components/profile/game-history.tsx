@@ -1,16 +1,8 @@
 "use client";
 
+import { GameRecord } from "@/types/game";
 import { History } from "lucide-react";
 import { GameCard } from "./game-card";
-
-interface GameRecord {
-	id: number;
-	score: number;
-	timeLeft: number;
-	questionsCount: number;
-	averageScore: number;
-	playedAt: string;
-}
 
 interface GameHistoryProps {
 	games: GameRecord[];
@@ -26,7 +18,15 @@ export function GameHistory({ games }: GameHistoryProps) {
 
 			<div className='space-y-4'>
 				{games.map((game) => (
-					<GameCard key={game.id} {...game} />
+					<GameCard
+						key={game.id}
+						{...game}
+						playedAt={
+							game.playedAt instanceof Date
+								? game.playedAt.toISOString()
+								: game.playedAt
+						}
+					/>
 				))}
 
 				{games.length === 0 && (

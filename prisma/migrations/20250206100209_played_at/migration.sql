@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "GameRecord" ALTER COLUMN "playedAt" SET DEFAULT CURRENT_TIMESTAMP;

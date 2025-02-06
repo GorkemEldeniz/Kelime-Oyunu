@@ -1,19 +1,20 @@
 "use server";
 
-import { getTurkishDayBoundaries, getTurkishTime } from "@/helpers";
+import { getTurkishDayBoundaries } from "@/helpers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { actionClient } from "@/lib/safe-action";
 import { saveGameRecordSchema } from "@/lib/validations/game";
 import { revalidatePath } from "next/cache";
 
-// Check if user has played today
+// Check if user has played within allowed time range (12:00-15:00 Turkish time)
 export async function hasPlayedToday() {
 	const session = await auth();
 	if (!session) return false;
 
 	const { today, tomorrow } = getTurkishDayBoundaries();
 
+	// Check if user has played within the current time range
 	const record = await db.gameRecord.findFirst({
 		where: {
 			userId: session.user.id,
@@ -60,9 +61,6 @@ export const saveGameRecord = actionClient
 		const hasPlayed = await hasPlayedToday();
 		if (hasPlayed) return null;
 
-		// Create a new record with Turkish local time
-		const playedAt = getTurkishTime();
-
 		const record = await db.gameRecord.create({
 			data: {
 				userId: session.user.id,
@@ -70,7 +68,6 @@ export const saveGameRecord = actionClient
 				timeLeft,
 				questionsCount,
 				averageScore: score / questionsCount,
-				playedAt,
 			},
 		});
 

@@ -2,7 +2,8 @@
 
 import { Card } from "@/components/ui/card";
 import { formatTime } from "@/helpers";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
+import { tr } from "date-fns/locale";
 
 interface GameCardProps {
 	id: number;
@@ -31,7 +32,7 @@ export function GameCard({
 					</div>
 				</div>
 				<div className='text-sm text-muted-foreground'>
-					{format(new Date(playedAt), "MMM d, yyyy")}
+					{format(parseISO(playedAt), "d MMMM yyyy", { locale: tr })}
 				</div>
 			</div>
 		</Card>

@@ -5,7 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
@@ -41,7 +42,7 @@ model GameRecord {
   timeLeft       Int
   questionsCount Int
   averageScore   Float
-  playedAt       DateTime
+  playedAt       DateTime @default(now())
   userId         Int
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
