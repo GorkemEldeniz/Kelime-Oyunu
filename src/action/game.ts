@@ -1,6 +1,6 @@
 "use server";
 
-import { getTurkishDayBoundaries } from "@/helpers";
+import { getTurkishDayBoundaries, getTurkishTime } from "@/helpers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { actionClient } from "@/lib/safe-action";
@@ -68,6 +68,7 @@ export const saveGameRecord = actionClient
 				timeLeft,
 				questionsCount,
 				averageScore: score / questionsCount,
+				playedAt: getTurkishTime(),
 			},
 		});
 
