@@ -156,6 +156,7 @@ export function InputSection({
 								type='button'
 								size='lg'
 								onClick={handleNextQuestion}
+								className='w-20 sm:w-24 md:w-28'
 							>
 								{saveGameRecordStatus === "executing" ? (
 									<Loader className='h-4 w-4 animate-spin' />
