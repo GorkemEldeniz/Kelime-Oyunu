@@ -17,7 +17,7 @@ export function WordDisplay({ hiddenWord, mean }: WordDisplayProps) {
 				{/* Letters Grid */}
 				<div className='relative w-full overflow-hidden'>
 					<div className='flex justify-center'>
-						<div className='flex gap-0.5 xs:gap-1 sm:gap-1.5 px-1 py-2 justify-center'>
+						<div className='flex gap-0.5 sm:gap-1 px-1 py-2 justify-center'>
 							{hiddenWord.map((letter, index) => (
 								<motion.div
 									key={index}
@@ -30,7 +30,7 @@ export function WordDisplay({ hiddenWord, mean }: WordDisplayProps) {
 										damping: 20,
 									}}
 									className={cn(
-										"w-[28px] h-[28px] xs:w-[32px] xs:h-[32px] sm:w-[38px] sm:h-[38px] md:w-[46px] md:h-[46px] flex items-center justify-center rounded-md border-2 text-base xs:text-lg sm:text-xl md:text-2xl font-bold uppercase shadow-sm shrink-0",
+										"size-[30px] xs:size-[34px] sm:size-[36px] md:size-[38px] flex items-center justify-center rounded-md border-2 text-base xs:text-lg sm:text-xl md:text-2xl font-bold uppercase shadow-sm shrink-0",
 										letter === " "
 											? "bg-background/80 border-primary/30"
 											: "bg-background border-primary/50"
