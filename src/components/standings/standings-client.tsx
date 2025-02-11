@@ -44,12 +44,14 @@ export function StandingsClient({
 	const handlePageChange = (newPage: number) => {
 		const params = new URLSearchParams(searchParams);
 		params.set("page", newPage.toString());
+		params.set("tab", activeTab);
 		router.push(`/standings?${params.toString()}`);
 	};
 
 	const handleTabChange = (tab: string) => {
 		const params = new URLSearchParams(searchParams);
 		params.set("tab", tab);
+		params.set("page", "1"); // Reset page when changing tabs
 		router.push(`/standings?${params.toString()}`);
 	};
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { StandingCard } from "./standing-card";
 
 interface Standing {
@@ -19,12 +20,16 @@ interface AllTimeStandingsProps {
 }
 
 export function AllTimeStandings({ standings }: AllTimeStandingsProps) {
+	const searchParams = useSearchParams();
+	const page = Number(searchParams.get("page")) || 1;
+	const itemsPerPage = 10;
+
 	return (
 		<div className='space-y-4'>
 			{standings.map((standing, index) => (
 				<StandingCard
 					key={standing.userId}
-					position={index + 1}
+					position={(page - 1) * itemsPerPage + index + 1}
 					username={standing.username}
 					score={standing._avg.score}
 					timeLeft={standing._avg.timeLeft}

@@ -135,7 +135,7 @@ export async function getDailyStandings(page = 1) {
 			},
 			orderBy: [{ score: "desc" }, { timeLeft: "desc" }],
 			take: itemsPerPage,
-			skip,
+			skip: skip,
 		}),
 		db.gameRecord.count({
 			where: {
@@ -147,7 +147,7 @@ export async function getDailyStandings(page = 1) {
 		}),
 	]);
 
-	const totalPages = Math.ceil(total / itemsPerPage);
+	const totalPages = Math.max(1, Math.ceil(total / itemsPerPage));
 
 	return {
 		standings,
