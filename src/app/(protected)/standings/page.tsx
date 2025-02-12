@@ -28,6 +28,7 @@ async function StandingsPage(props: StandingsPageProps) {
 				activeTab === "daily" ? dailyData.totalPages : allTimeData.totalPages
 			}
 			currentPage={page}
+			activeTab={activeTab}
 		/>
 	);
 }
