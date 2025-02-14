@@ -1,5 +1,6 @@
 "use server";
 
+import { db } from "@/lib/db";
 import { actionClient } from "@/lib/safe-action";
 import {
 	clearAuthCookies,
@@ -13,8 +14,19 @@ import {
 	invalidateAllRefreshTokens,
 	verifyToken,
 } from "@/lib/services/token-service";
-import { signInSchema, signUpSchema } from "@/lib/validations/auth";
+import {
+	forgotPasswordSchema,
+	resetPasswordSchema,
+	signInSchema,
+	signUpSchema,
+} from "@/lib/validations/auth";
+import { render } from "@react-email/render";
+import { hash } from "bcryptjs";
+import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
+import * as React from "react";
+import { Resend } from "resend";
+import ResetPasswordEmail from "../emails/reset-password";
 
 export const signIn = actionClient
 	.schema(signInSchema)
@@ -132,3 +144,84 @@ export const signOut = actionClient.action(async () => {
 		};
 	}
 });
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+const secret = new TextEncoder().encode(process.env.JWT_SECRET);
+
+export const requestPasswordReset = actionClient
+	.schema(forgotPasswordSchema)
+	.action(async ({ parsedInput: { email } }) => {
+		const user = await db.user.findUnique({
+			where: { email },
+		});
+
+		if (!user) {
+			return {
+				error: "Bu e-posta adresi ile kayıtlı kullanıcı bulunamadı.",
+			};
+		}
+
+		const token = await new SignJWT({ sub: user.id.toString() })
+			.setProtectedHeader({ alg: "HS256" })
+			.setIssuedAt()
+			.setExpirationTime("30m")
+			.sign(secret);
+
+		const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
+
+		const emailHtml = await render(
+			React.createElement(ResetPasswordEmail, {
+				username: user.username,
+				resetLink: resetLink,
+			})
+		);
+
+		await resend.emails.send({
+			from: "Kelime Oyunu <noreply@kelimeoyunu.net.tr>",
+			to: email,
+			subject: "Şifre Sıfırlama",
+			html: emailHtml,
+		});
+
+		return {
+			success: true,
+			data: {
+				message: "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.",
+			},
+		};
+	});
+
+export const resetPassword = actionClient
+	.schema(resetPasswordSchema)
+	.action(async ({ parsedInput: { token, password } }) => {
+		try {
+			const { payload } = await jwtVerify(token, secret);
+			const userId = payload.sub;
+
+			if (!userId) {
+				return {
+					error: "Geçersiz token",
+				};
+			}
+
+			const hashedPassword = await hash(password, 10);
+
+			await db.user.update({
+				where: { id: Number(userId) },
+				data: { password: hashedPassword },
+			});
+
+			return {
+				success: true,
+				data: {
+					message: "Şifreniz başarıyla güncellendi.",
+				},
+			};
+		} catch (error) {
+			console.error("[RESET_PASSWORD_ERROR]", error);
+			return {
+				success: false,
+				error: "Şifre sıfırlama bağlantısı geçersiz veya süresi dolmuş.",
+			};
+		}
+	});

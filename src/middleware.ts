@@ -4,7 +4,12 @@ import { NextResponse } from "next/server";
 
 // Paths that don't require authentication
 const publicPaths = ["/", "/api/auth/google/callback"]; // Only landing page is public
-const authPaths = ["/sign-in", "/sign-up"]; // Auth paths for unauthenticated users
+const authPaths = [
+	"/sign-in",
+	"/sign-up",
+	"/forgot-password",
+	"/reset-password",
+]; // Auth paths for unauthenticated users
 
 // Cookie names
 const ACCESS_TOKEN_NAME = "token";

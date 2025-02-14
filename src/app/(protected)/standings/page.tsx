@@ -1,5 +1,7 @@
 import { getAllTimeStandings, getDailyStandings } from "@/action/game";
-import { StandingsClient } from "@/components/standings/standings-client";
+import { PageHeader } from "@/components/shared/page-header";
+import { Pagination } from "@/components/shared/pagination";
+import { StandingsTabs } from "@/components/standings/standings-tabs";
 
 export const revalidate = 60; // Revalidate every minute
 
@@ -21,15 +23,21 @@ async function StandingsPage(props: StandingsPageProps) {
 	]);
 
 	return (
-		<StandingsClient
-			dailyStandings={dailyData.standings}
-			allTimeStandings={allTimeData.standings}
-			totalPages={
-				activeTab === "daily" ? dailyData.totalPages : allTimeData.totalPages
-			}
-			currentPage={page}
-			activeTab={activeTab}
-		/>
+		<div className='container max-w-4xl py-8'>
+			<PageHeader title='Sıralama' icon='Trophy' />
+			<StandingsTabs
+				activeTab={activeTab}
+				dailyStandings={dailyData.standings}
+				allTimeStandings={allTimeData.standings}
+			/>
+			<Pagination
+				totalPages={
+					activeTab === "daily" ? dailyData.totalPages : allTimeData.totalPages
+				}
+				currentPage={page}
+				baseUrl='/standings'
+			/>
+		</div>
 	);
 }
 

@@ -1,5 +1,8 @@
 import { getUserGameHistory } from "@/action/game";
-import { ProfileClient } from "@/components/profile/profile-client";
+import { GameHistory } from "@/components/profile/game-history";
+import { ProfileStats } from "@/components/profile/profile-stats";
+import { PageHeader } from "@/components/shared/page-header";
+import { Pagination } from "@/components/shared/pagination";
 export const revalidate = 60; // Revalidate every minute
 
 interface ProfilePageProps {
@@ -14,10 +17,15 @@ export default async function ProfilePage(props: ProfilePageProps) {
 	const { games, totalPages } = await getUserGameHistory(page);
 
 	return (
-		<ProfileClient
-			gameHistory={games}
-			totalPages={totalPages}
-			currentPage={page}
-		/>
+		<div className='container max-w-4xl py-8'>
+			<PageHeader title='Profiliniz' icon='Trophy' />
+			<ProfileStats gameHistory={games} />
+			<GameHistory games={games} />
+			<Pagination
+				totalPages={totalPages}
+				currentPage={page}
+				baseUrl='/profile'
+			/>
+		</div>
 	);
 }

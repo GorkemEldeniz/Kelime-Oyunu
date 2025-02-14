@@ -21,14 +21,20 @@ export default function SignInPage() {
 						</p>
 					</div>
 					<AuthForm type='sign-in' />
-					<p className='px-8 text-center text-sm text-muted-foreground'>
+					<div className='flex flex-col space-y-2 text-center text-sm'>
+						<Link
+							href='/forgot-password'
+							className='text-muted-foreground hover:text-brand underline underline-offset-4'
+						>
+							Şifrenizi mi unuttunuz?
+						</Link>
 						<Link
 							href='/sign-up'
-							className='hover:text-brand underline underline-offset-4'
+							className='text-muted-foreground hover:text-brand underline underline-offset-4'
 						>
 							Hesabınız yok mu? Kayıt Olun
 						</Link>
-					</p>
+					</div>
 				</div>
 			</div>
 		</main>

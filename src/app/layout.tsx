@@ -1,4 +1,3 @@
-import { Footer } from "@/components/shared/footer";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/context/theme-provider";
 import type { Metadata, Viewport } from "next";
@@ -85,7 +84,6 @@ export default function RootLayout({
 					disableTransitionOnChange
 				>
 					{children}
-					<Footer />
 					<Toaster />
 				</ThemeProvider>
 			</body>

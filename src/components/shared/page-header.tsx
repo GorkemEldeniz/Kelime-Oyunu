@@ -1,16 +1,19 @@
 "use client";
 
-import { LucideIcon } from "lucide-react";
+import * as Icons from "lucide-react";
+import { LucideProps } from "lucide-react";
 
 interface PageHeaderProps {
 	title: string;
-	icon: LucideIcon;
+	icon: keyof typeof Icons;
 }
 
-export function PageHeader({ title, icon: Icon }: PageHeaderProps) {
+export function PageHeader({ title, icon }: PageHeaderProps) {
+	const IconComponent = Icons[icon] as React.ComponentType<LucideProps>;
+
 	return (
 		<div className='flex items-center gap-3 mb-8'>
-			<Icon className='w-8 h-8 text-primary' />
+			<IconComponent className='w-8 h-8 text-primary' />
 			<h1 className='text-3xl font-bold'>{title}</h1>
 		</div>
 	);
