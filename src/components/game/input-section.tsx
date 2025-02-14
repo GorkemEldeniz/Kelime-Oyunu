@@ -173,6 +173,7 @@ export function InputSection({
 								variant='destructive'
 								className='w-16 h-16 rounded-full p-0'
 								onClick={() => startResponding()}
+								disabled={isResponding}
 							/>
 						)}
 					</div>
