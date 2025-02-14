@@ -24,7 +24,6 @@ import { render } from "@react-email/render";
 import { hash } from "bcryptjs";
 import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
-import * as React from "react";
 import { Resend } from "resend";
 import ResetPasswordEmail from "../emails/reset-password";
 
@@ -151,44 +150,52 @@ const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 export const requestPasswordReset = actionClient
 	.schema(forgotPasswordSchema)
 	.action(async ({ parsedInput: { email } }) => {
-		const user = await db.user.findUnique({
-			where: { email },
-		});
+		try {
+			const user = await db.user.findUnique({
+				where: { email },
+			});
 
-		if (!user) {
+			if (!user) {
+				return {
+					error: "Bu e-posta adresi ile kayıtlı kullanıcı bulunamadı.",
+				};
+			}
+
+			const token = await new SignJWT({ sub: user.id.toString() })
+				.setProtectedHeader({ alg: "HS256" })
+				.setIssuedAt()
+				.setExpirationTime("30m")
+				.sign(secret);
+
+			const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
+
+			const emailHtml = await render(
+				ResetPasswordEmail({
+					username: user.username,
+					resetLink: resetLink,
+				})
+			);
+
+			await resend.emails.send({
+				from: "Kelime Oyunu <noreply@kelimeoyunu.net.tr>",
+				to: email,
+				subject: "Şifre Sıfırlama",
+				html: emailHtml,
+			});
+
 			return {
-				error: "Bu e-posta adresi ile kayıtlı kullanıcı bulunamadı.",
+				success: true,
+				data: {
+					message: "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.",
+				},
+			};
+		} catch (error) {
+			console.error("[REQUEST_PASSWORD_RESET_ERROR]", error);
+			return {
+				success: false,
+				error: "Şifre sıfırlama e-postası gönderilirken bir hata oluştu.",
 			};
 		}
-
-		const token = await new SignJWT({ sub: user.id.toString() })
-			.setProtectedHeader({ alg: "HS256" })
-			.setIssuedAt()
-			.setExpirationTime("30m")
-			.sign(secret);
-
-		const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
-
-		const emailHtml = await render(
-			React.createElement(ResetPasswordEmail, {
-				username: user.username,
-				resetLink: resetLink,
-			})
-		);
-
-		await resend.emails.send({
-			from: "Kelime Oyunu <noreply@kelimeoyunu.net.tr>",
-			to: email,
-			subject: "Şifre Sıfırlama",
-			html: emailHtml,
-		});
-
-		return {
-			success: true,
-			data: {
-				message: "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.",
-			},
-		};
 	});
 
 export const resetPassword = actionClient
