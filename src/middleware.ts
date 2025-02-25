@@ -43,14 +43,20 @@ export async function middleware(request: NextRequest) {
 			return NextResponse.redirect(redirectUrl);
 		}
 
-		const decodedAccessToken = await verifyAndDecodeToken(accessToken);
+		const decodedAccessToken = await verifyAndDecodeToken(
+			accessToken,
+			"ACCESS"
+		);
 
 		if (!decodedAccessToken) {
 			if (!refreshToken) {
 				return NextResponse.redirect(redirectUrl);
 			}
 
-			const decodedRefreshToken = await verifyAndDecodeToken(refreshToken);
+			const decodedRefreshToken = await verifyAndDecodeToken(
+				refreshToken,
+				"REFRESH"
+			);
 
 			if (!decodedRefreshToken) {
 				return NextResponse.redirect(redirectUrl);

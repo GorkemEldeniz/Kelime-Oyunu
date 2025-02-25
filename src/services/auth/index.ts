@@ -1,6 +1,5 @@
 "use server";
 
-import { REFRESH_TOKEN_EXPIRES_IN } from "@/config/auth";
 import { db } from "@/lib/db";
 import { AuthUser } from "@/types/auth";
 import { cookies } from "next/headers";
@@ -24,13 +23,6 @@ export async function generateAuthTokens(userId: number) {
 		return { accessToken, refreshToken: existingToken.token };
 	}
 
-	await db.token.deleteMany({
-		where: {
-			userId,
-			type: "REFRESH",
-		},
-	});
-
 	const [accessToken, refreshToken] = await Promise.all([
 		generateToken(userId, "ACCESS"),
 		generateToken(userId, "REFRESH"),
@@ -42,31 +34,48 @@ export async function generateAuthTokens(userId: number) {
 			token: refreshToken,
 			userId,
 			type: "REFRESH",
-			expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRES_IN),
+			expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 1), // one day
 		},
 	});
+
+	console.log("token stored");
 
 	return { accessToken, refreshToken };
 }
 
 export async function auth(): Promise<{ user: AuthUser } | null> {
-	const cookieStore = await cookies();
-	const refreshToken = cookieStore.get("refresh_token")?.value;
+	try {
+		const cookieStore = await cookies();
+		const refreshToken = cookieStore.get("refresh_token")?.value;
 
-	if (!refreshToken) return null;
+		if (!refreshToken) {
+			return null;
+		}
 
-	const dbToken = await db.token.findUnique({
-		where: { token: refreshToken },
-		include: { user: true },
-	});
+		const dbToken = await db.token.findUnique({
+			where: { token: refreshToken },
+			include: { user: true },
+		});
 
-	if (!dbToken || dbToken.expiresAt < new Date()) return null;
+		if (!dbToken) {
+			console.error("Token not found in database");
+			return null;
+		}
 
-	return {
-		user: {
-			id: dbToken.user.id,
-			email: dbToken.user.email,
-			username: dbToken.user.username,
-		},
-	};
+		if (dbToken.expiresAt < new Date()) {
+			console.error("Token has expired");
+			return null;
+		}
+
+		return {
+			user: {
+				id: dbToken.user.id,
+				email: dbToken.user.email,
+				username: dbToken.user.username,
+			},
+		};
+	} catch (error) {
+		console.error("Auth function error:", error);
+		return null;
+	}
 }

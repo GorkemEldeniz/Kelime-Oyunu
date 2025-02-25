@@ -1,7 +1,15 @@
+export const JWT_REFRESH_SECRET = new TextEncoder().encode(
+	process.env.JWT_REFRESH_SECRET!
+);
+
+export const JWT_ACCESS_SECRET = new TextEncoder().encode(
+	process.env.JWT_ACCESS_SECRET!
+);
+
 export const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
 
 export const JWT_RESET_SECRET = new TextEncoder().encode(
-	process.env.JWT_SECRET!
+	process.env.JWT_SECRET
 );
 
 export const ACCESS_TOKEN_EXPIRES_IN = "1h";

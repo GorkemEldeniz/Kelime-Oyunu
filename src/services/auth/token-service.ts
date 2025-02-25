@@ -2,7 +2,8 @@
 
 import {
 	ACCESS_TOKEN_EXPIRES_IN,
-	JWT_SECRET,
+	JWT_ACCESS_SECRET,
+	JWT_REFRESH_SECRET,
 	REFRESH_TOKEN_EXPIRES_IN,
 } from "@/config/auth";
 import { db } from "@/lib/db";
@@ -14,22 +15,36 @@ export async function generateToken(
 	userId: number,
 	type: TokenType
 ): Promise<string> {
-	return new jose.SignJWT({ userId, type })
+	// Ensure we're creating a valid payload object
+	const payload = { userId, type };
+
+	return new jose.SignJWT(payload)
 		.setProtectedHeader({ alg: "HS256" })
 		.setExpirationTime(
 			type === "ACCESS" ? ACCESS_TOKEN_EXPIRES_IN : REFRESH_TOKEN_EXPIRES_IN
 		)
-		.sign(JWT_SECRET);
+		.sign(type === "ACCESS" ? JWT_ACCESS_SECRET : JWT_REFRESH_SECRET);
 }
 
 export async function verifyAndDecodeToken(
-	token: string
+	token: string,
+	type: TokenType
 ): Promise<jose.JWTPayload | null> {
 	try {
-		const { payload } = await jose.jwtVerify(token, JWT_SECRET);
+		const { payload } = await jose.jwtVerify(
+			token,
+			type === "ACCESS" ? JWT_ACCESS_SECRET : JWT_REFRESH_SECRET
+		);
+
+		// Ensure payload is not null and has the expected userId property
+		if (!payload || typeof payload.userId !== "number") {
+			console.error("Invalid token payload:", payload);
+			return null;
+		}
+
 		return payload;
 	} catch (error) {
-		console.error("Token is invalid", error);
+		console.error("Token verification error:", error);
 		return null;
 	}
 }
@@ -63,10 +78,14 @@ export async function refreshAccessToken(
 	refreshToken: string
 ): Promise<string | null> {
 	try {
-		const { payload } = await jose.jwtVerify(refreshToken, JWT_SECRET);
+		const { payload } = await jose.jwtVerify(refreshToken, JWT_REFRESH_SECRET);
+
+		// Ensure payload is not null and has the expected userId property
 		if (!payload || typeof payload.userId !== "number") {
+			console.error("Invalid refresh token payload:", payload);
 			return null;
 		}
+
 		return generateToken(payload.userId, "ACCESS");
 	} catch (error) {
 		console.error("Error refreshing access token:", error);

@@ -1,5 +1,6 @@
 "use server";
 
+import { REFRESH_TOKEN_EXPIRES_IN } from "@/config/auth";
 import { db } from "@/lib/db";
 import { CreateUserResult } from "@/types/auth";
 import { SignUpInput } from "@/validations/auth";
@@ -38,6 +39,16 @@ export async function createUser(data: SignUpInput): Promise<CreateUserResult> {
 		generateToken(user.id, "ACCESS"),
 		generateToken(user.id, "REFRESH"),
 	]);
+
+	// create new refresh token
+	await db.token.create({
+		data: {
+			userId: user.id,
+			type: "REFRESH",
+			token: refreshToken,
+			expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRES_IN),
+		},
+	});
 
 	return {
 		user,
