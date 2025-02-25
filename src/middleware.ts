@@ -24,9 +24,11 @@ const REFRESH_TOKEN_NAME = "refresh_token";
 export async function middleware(request: NextRequest) {
 	const { pathname } = request.nextUrl;
 
-	const isAuthRoute = authPaths.some((path) => pathname.startsWith(path));
-	const isProtectedRoute = protectedPaths.some((path) =>
-		pathname.startsWith(path)
+	const isAuthRoute = authPaths.some(
+		(path) => pathname.startsWith(path) && pathname !== "/"
+	);
+	const isProtectedRoute = protectedPaths.some(
+		(path) => pathname.startsWith(path) && pathname !== "/"
 	);
 
 	// Get tokens
