@@ -3,7 +3,7 @@ import {
 	getGoogleToken,
 	getGoogleUserInfo,
 } from "@/action/google-auth";
-import { setAuthCookies } from "@/services/auth-service";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -44,7 +44,9 @@ export async function GET(request: Request) {
 		const { tokens } = await findOrCreateGoogleUser(googleUser);
 
 		// Set auth cookies
-		await setAuthCookies(tokens.accessToken, tokens.refreshToken);
+		const cookieStore = await cookies();
+		cookieStore.set("access_token", tokens.accessToken);
+		cookieStore.set("refresh_token", tokens.refreshToken);
 
 		// Redirect to home page
 		return NextResponse.redirect(process.env.NEXT_PUBLIC_APP_URL!);

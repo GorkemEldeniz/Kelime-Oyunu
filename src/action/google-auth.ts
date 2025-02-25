@@ -1,7 +1,7 @@
 "use server";
 
-import { generateAuthTokens } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { generateAuthTokens } from "@/services/auth";
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET;
