@@ -19,7 +19,7 @@ export default async function ProfilePage(props: ProfilePageProps) {
 	return (
 		<div className='container max-w-4xl py-8'>
 			<PageHeader title='Profiliniz' icon='Trophy' />
-			<ProfileStats gameHistory={games} />
+			<ProfileStats />
 			<GameHistory games={games} />
 			<Pagination
 				totalPages={totalPages}

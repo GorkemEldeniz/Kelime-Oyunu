@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import {
-	ForgotPasswordInput,
 	forgotPasswordSchema,
-} from "@/lib/validations/auth";
+	type ForgotPasswordInput,
+} from "@/validations/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";

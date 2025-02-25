@@ -1,29 +1,24 @@
 "use server";
 
+import { JWT_RESET_SECRET, RESET_TOKEN_EXPIRES_IN } from "@/config/auth";
 import { db } from "@/lib/db";
 import { actionClient } from "@/lib/safe-action";
 import {
 	clearAuthCookies,
-	createUser,
-	generateAuthTokens,
-	getUserByEmail,
 	setAuthCookies,
-	verifyPassword,
-} from "@/lib/services/auth-service";
-import {
-	invalidateAllRefreshTokens,
-	verifyToken,
-} from "@/lib/services/token-service";
+} from "@/services/auth/cookie-service";
+import { generateAuthTokens } from "@/services/auth/index";
+import { verifyPassword } from "@/services/auth/password-service";
+import { createUser, getUserByEmail } from "@/services/auth/user-service";
 import {
 	forgotPasswordSchema,
 	resetPasswordSchema,
 	signInSchema,
 	signUpSchema,
-} from "@/lib/validations/auth";
+} from "@/validations/auth";
 import { render } from "@react-email/render";
 import { hash } from "bcryptjs";
 import { jwtVerify, SignJWT } from "jose";
-import { cookies } from "next/headers";
 import { Resend } from "resend";
 import ResetPasswordEmail from "../emails/reset-password";
 
@@ -114,19 +109,6 @@ export const signUp = actionClient
 
 export const signOut = actionClient.action(async () => {
 	try {
-		const cookieStore = await cookies();
-		const refreshToken = cookieStore.get("refresh_token")?.value;
-
-		if (refreshToken) {
-			// Verify token to get user ID
-			const decoded = await verifyToken(refreshToken);
-			if (decoded?.userId) {
-				// Invalidate all refresh tokens
-				await invalidateAllRefreshTokens(decoded.userId);
-			}
-		}
-
-		// Clear cookies
 		await clearAuthCookies();
 
 		return {
@@ -145,15 +127,12 @@ export const signOut = actionClient.action(async () => {
 });
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export const requestPasswordReset = actionClient
 	.schema(forgotPasswordSchema)
 	.action(async ({ parsedInput: { email } }) => {
 		try {
-			const user = await db.user.findUnique({
-				where: { email },
-			});
+			const user = await getUserByEmail(email);
 
 			if (!user) {
 				return {
@@ -164,8 +143,8 @@ export const requestPasswordReset = actionClient
 			const token = await new SignJWT({ sub: user.id.toString() })
 				.setProtectedHeader({ alg: "HS256" })
 				.setIssuedAt()
-				.setExpirationTime("30m")
-				.sign(secret);
+				.setExpirationTime(RESET_TOKEN_EXPIRES_IN)
+				.sign(JWT_RESET_SECRET);
 
 			const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
 
@@ -202,7 +181,7 @@ export const resetPassword = actionClient
 	.schema(resetPasswordSchema)
 	.action(async ({ parsedInput: { token, password } }) => {
 		try {
-			const { payload } = await jwtVerify(token, secret);
+			const { payload } = await jwtVerify(token, JWT_RESET_SECRET);
 			const userId = payload.sub;
 
 			if (!userId) {
@@ -211,11 +190,9 @@ export const resetPassword = actionClient
 				};
 			}
 
-			const hashedPassword = await hash(password, 10);
-
 			await db.user.update({
 				where: { id: Number(userId) },
-				data: { password: hashedPassword },
+				data: { password: await hash(password, 10) },
 			});
 
 			return {

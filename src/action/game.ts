@@ -1,11 +1,13 @@
 "use server";
 
 import { getTurkishDayBoundaries, getTurkishTime } from "@/helpers";
-import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { actionClient } from "@/lib/safe-action";
-import { saveGameRecordSchema } from "@/lib/validations/game";
+import { auth } from "@/services/auth";
+import { saveGameRecordSchema } from "@/validations/game";
 import { revalidatePath } from "next/cache";
+
+const ITEMS_PER_PAGE = 10;
 
 // Check if user has played within allowed time range (12:00-15:00 Turkish time)
 export async function hasPlayedToday() {
@@ -82,8 +84,7 @@ export async function getUserGameHistory(page = 1) {
 	const session = await auth();
 	if (!session) return { games: [], totalPages: 0 };
 
-	const itemsPerPage = 10;
-	const skip = (page - 1) * itemsPerPage;
+	const skip = (page - 1) * ITEMS_PER_PAGE;
 
 	const [games, total] = await Promise.all([
 		db.gameRecord.findMany({
@@ -93,7 +94,7 @@ export async function getUserGameHistory(page = 1) {
 			orderBy: {
 				playedAt: "desc",
 			},
-			take: itemsPerPage,
+			take: ITEMS_PER_PAGE,
 			skip,
 		}),
 		db.gameRecord.count({
@@ -103,7 +104,7 @@ export async function getUserGameHistory(page = 1) {
 		}),
 	]);
 
-	const totalPages = Math.ceil(total / itemsPerPage);
+	const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
 	return {
 		games,
@@ -256,3 +257,38 @@ export async function getAllTimeStandings(page = 1) {
 		totalPages,
 	};
 }
+
+// Get user's avarage score and highest score
+export const getUserStatsAction = actionClient.action(async () => {
+	try {
+		const session = await auth();
+		if (!session) return { averageScore: 0, highestScore: 0 };
+
+		const records = await db.gameRecord.findMany({
+			where: {
+				userId: session.user.id,
+			},
+			orderBy: {
+				score: "desc",
+			},
+		});
+
+		const averageScore =
+			records.reduce((acc, record) => acc + record.score, 0) / records.length;
+		const highestScore = records[0].score;
+
+		return {
+			success: true,
+			data: {
+				totalGames: records.length,
+				averageScore: Math.round(averageScore),
+				highestScore: Math.round(highestScore),
+			},
+		};
+	} catch (error) {
+		return {
+			success: false,
+			error: error instanceof Error ? error.message : "Unknown error",
+		};
+	}
+});

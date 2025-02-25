@@ -4,17 +4,17 @@ import { signIn, signUp } from "@/action/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getGoogleOAuthURL } from "@/helpers";
+import { cn } from "@/lib/utils";
 import {
 	SignInInput,
 	SignUpInput,
 	signInSchema,
 	signUpSchema,
-} from "@/lib/auth-scheme";
-import { cn } from "@/lib/utils";
+} from "@/validations/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -24,6 +24,8 @@ interface AuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function AuthForm({ type, className, ...props }: AuthFormProps) {
 	const router = useRouter();
+	const searchParams = useSearchParams();
+	const redirect = searchParams.get("redirect");
 
 	const signInForm = useForm<SignInInput>({
 		resolver: zodResolver(signInSchema),
@@ -46,8 +48,7 @@ export function AuthForm({ type, className, ...props }: AuthFormProps) {
 		onSuccess: ({ data }) => {
 			if (data?.success) {
 				toast.success(data.data?.message);
-				router.push("/game");
-				router.refresh();
+				router.push(redirect || "/profile");
 			} else if (data?.error) {
 				toast.error(data.error);
 			}
@@ -61,8 +62,7 @@ export function AuthForm({ type, className, ...props }: AuthFormProps) {
 		onSuccess: ({ data }) => {
 			if (data?.success) {
 				toast.success(data.data?.message);
-				router.push("/game");
-				router.refresh();
+				router.push(redirect || "/profile");
 			} else if (data?.error) {
 				toast.error(data.error);
 			}

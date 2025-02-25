@@ -1,6 +1,6 @@
 import { Footer } from "@/components/shared/footer";
 import { Header } from "@/components/shared/header";
-import { auth } from "@/lib/auth";
+import { auth } from "@/services/auth";
 import { redirect } from "next/navigation";
 
 export default async function ProtectedLayout({
@@ -9,8 +9,8 @@ export default async function ProtectedLayout({
 	children: React.ReactNode;
 }) {
 	const session = await auth();
-	if (!session) redirect("/sign-in");
 
+	if (!session) redirect("/sign-in");
 	return (
 		<div className='min-h-screen flex flex-col'>
 			<Header userEmail={session.user.email} />

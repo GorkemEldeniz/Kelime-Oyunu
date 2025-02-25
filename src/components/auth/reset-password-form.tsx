@@ -4,10 +4,7 @@ import { resetPassword } from "@/action/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import {
-	ResetPasswordInput,
-	resetPasswordSchema,
-} from "@/lib/validations/auth";
+import { ResetPasswordInput, resetPasswordSchema } from "@/validations/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
