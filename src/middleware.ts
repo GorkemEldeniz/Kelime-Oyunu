@@ -2,7 +2,6 @@ import {
 	generateAndStoreTokens,
 	verifyAndDecodeToken,
 } from "@/services/auth/token-service";
-import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -32,9 +31,8 @@ export async function middleware(request: NextRequest) {
 	);
 
 	// Get tokens
-	const cookieStore = await cookies();
-	const accessToken = cookieStore.get(ACCESS_TOKEN_NAME)?.value;
-	const refreshToken = cookieStore.get(REFRESH_TOKEN_NAME)?.value;
+	const accessToken = request.cookies.get(ACCESS_TOKEN_NAME)?.value;
+	const refreshToken = request.cookies.get(REFRESH_TOKEN_NAME)?.value;
 
 	// If the route is protected, check if the user is authenticated
 	if (isProtectedRoute) {
