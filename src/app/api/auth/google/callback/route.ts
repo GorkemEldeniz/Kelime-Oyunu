@@ -3,7 +3,7 @@ import {
 	getGoogleToken,
 	getGoogleUserInfo,
 } from "@/action/google-auth";
-import { setAuthCookies } from "@/services/auth-service";
+import { setAuthCookies } from "@/services/auth/cookie-service";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
