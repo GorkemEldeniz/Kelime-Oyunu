@@ -2,8 +2,7 @@
 
 import {
 	ACCESS_TOKEN_EXPIRES_IN,
-	JWT_ACCESS_SECRET,
-	JWT_REFRESH_SECRET,
+	JWT_SECRET,
 	REFRESH_TOKEN_EXPIRES_IN,
 } from "@/config/auth";
 import { db } from "@/lib/db";
@@ -20,18 +19,14 @@ export async function generateToken(
 		.setExpirationTime(
 			type === "ACCESS" ? ACCESS_TOKEN_EXPIRES_IN : REFRESH_TOKEN_EXPIRES_IN
 		)
-		.sign(JWT_ACCESS_SECRET);
+		.sign(JWT_SECRET);
 }
 
 export async function verifyAndDecodeToken(
-	token: string,
-	type: TokenType
+	token: string
 ): Promise<jose.JWTPayload | null> {
 	try {
-		const { payload } = await jose.jwtVerify(
-			token,
-			type === "ACCESS" ? JWT_ACCESS_SECRET : JWT_REFRESH_SECRET
-		);
+		const { payload } = await jose.jwtVerify(token, JWT_SECRET);
 		return payload;
 	} catch (error) {
 		console.error("Token is invalid", error);
@@ -67,9 +62,16 @@ export async function invalidateAllRefreshTokens(userId: number) {
 export async function refreshAccessToken(
 	refreshToken: string
 ): Promise<string | null> {
-	const { payload } = await jose.jwtVerify(refreshToken, JWT_REFRESH_SECRET);
-
-	return generateToken(payload?.userId as number, "ACCESS");
+	try {
+		const { payload } = await jose.jwtVerify(refreshToken, JWT_SECRET);
+		if (!payload || typeof payload.userId !== "number") {
+			return null;
+		}
+		return generateToken(payload.userId, "ACCESS");
+	} catch (error) {
+		console.error("Error refreshing access token:", error);
+		return null;
+	}
 }
 
 export async function generateAndStoreTokens(userId: number) {

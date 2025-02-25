@@ -1,10 +1,10 @@
 "use server";
 
+import { REFRESH_TOKEN_EXPIRES_IN } from "@/config/auth";
 import { db } from "@/lib/db";
 import { AuthUser } from "@/types/auth";
 import { cookies } from "next/headers";
 import { generateToken } from "./token-service";
-
 export async function generateAuthTokens(userId: number) {
 	const existingToken = await db.token.findFirst({
 		where: {
@@ -35,6 +35,16 @@ export async function generateAuthTokens(userId: number) {
 		generateToken(userId, "ACCESS"),
 		generateToken(userId, "REFRESH"),
 	]);
+
+	// store tokens in db
+	await db.token.create({
+		data: {
+			token: refreshToken,
+			userId,
+			type: "REFRESH",
+			expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRES_IN),
+		},
+	});
 
 	return { accessToken, refreshToken };
 }
