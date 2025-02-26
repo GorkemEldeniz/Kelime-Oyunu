@@ -1,6 +1,10 @@
 "use server";
 
-import { JWT_RESET_SECRET, RESET_TOKEN_EXPIRES_IN } from "@/config/auth";
+import {
+	JWT_RESET_SECRET,
+	REFRESH_TOKEN_MAX_AGE,
+	RESET_TOKEN_EXPIRES_IN,
+} from "@/config/auth";
 import { db } from "@/lib/db";
 import { actionClient } from "@/lib/safe-action";
 import {
@@ -49,6 +53,24 @@ export const signIn = actionClient
 
 			// Generate tokens
 			const { accessToken, refreshToken } = await generateAuthTokens(user.id);
+
+			// delete old refresh token for user
+			await db.token.deleteMany({
+				where: {
+					userId: user.id,
+					type: "REFRESH",
+				},
+			});
+
+			// create new refresh token
+			await db.token.create({
+				data: {
+					userId: user.id,
+					type: "REFRESH",
+					token: refreshToken,
+					expiresAt: new Date(Date.now() + REFRESH_TOKEN_MAX_AGE),
+				},
+			});
 
 			// Set cookies
 			await setAuthCookies(accessToken, refreshToken);

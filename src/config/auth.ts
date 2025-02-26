@@ -23,4 +23,4 @@ export const COOKIE_CONFIG = {
 };
 
 export const ACCESS_TOKEN_MAX_AGE = 60 * 60; // 1 hour
-export const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
+export const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24; // 1 day

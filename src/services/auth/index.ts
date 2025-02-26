@@ -1,9 +1,11 @@
 "use server";
 
+import { REFRESH_TOKEN_MAX_AGE } from "@/config/auth";
 import { db } from "@/lib/db";
 import { AuthUser } from "@/types/auth";
 import { cookies } from "next/headers";
 import { generateToken } from "./token-service";
+
 export async function generateAuthTokens(userId: number) {
 	const existingToken = await db.token.findFirst({
 		where: {
@@ -34,11 +36,9 @@ export async function generateAuthTokens(userId: number) {
 			token: refreshToken,
 			userId,
 			type: "REFRESH",
-			expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 1), // one day
+			expiresAt: new Date(Date.now() + REFRESH_TOKEN_MAX_AGE),
 		},
 	});
-
-	console.log("token stored");
 
 	return { accessToken, refreshToken };
 }

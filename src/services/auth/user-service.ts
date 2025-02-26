@@ -1,11 +1,11 @@
 "use server";
 
+import { REFRESH_TOKEN_MAX_AGE } from "@/config/auth";
 import { db } from "@/lib/db";
 import { CreateUserResult } from "@/types/auth";
 import { SignUpInput } from "@/validations/auth";
 import { hashPassword } from "./password-service";
 import { generateToken } from "./token-service";
-
 export async function getUserByEmail(email: string) {
 	return db.user.findUnique({
 		where: { email },
@@ -45,7 +45,7 @@ export async function createUser(data: SignUpInput): Promise<CreateUserResult> {
 			userId: user.id,
 			type: "REFRESH",
 			token: refreshToken,
-			expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 1), // one day
+			expiresAt: new Date(Date.now() + REFRESH_TOKEN_MAX_AGE),
 		},
 	});
 
