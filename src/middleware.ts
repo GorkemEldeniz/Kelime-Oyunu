@@ -79,20 +79,11 @@ export async function middleware(request: NextRequest) {
 				// Create a response that continues to the requested page
 				const response = NextResponse.next();
 
-				// Get the domain from the request URL for cookie settings
-				const domain = request.nextUrl.hostname;
-				const isLocalhost = domain === "localhost";
-
 				// Set the new access token as a cookie in the response
 				response.cookies.set(ACCESS_TOKEN_NAME, newAccessToken, {
 					...COOKIE_CONFIG,
 					maxAge: Math.floor(ACCESS_TOKEN_MAX_AGE / 1000), // Convert ms to seconds for cookies
 					path: "/",
-					domain: isLocalhost
-						? undefined
-						: domain.includes(".")
-							? domain
-							: undefined,
 				});
 
 				return response;
