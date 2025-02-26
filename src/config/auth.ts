@@ -10,4 +10,5 @@ export const COOKIE_CONFIG = {
 	secure: process.env.NODE_ENV === "production",
 	sameSite: "lax" as const,
 	expires: new Date(Date.now() + ACCESS_TOKEN_MAX_AGE),
+	path: "/",
 };
