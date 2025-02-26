@@ -21,8 +21,8 @@ export async function generateToken(
 		)
 		.sign(
 			type === "ACCESS"
-				? jose.base64url.decode(process.env.JWT_ACCESS_SECRET!)
-				: jose.base64url.decode(process.env.JWT_REFRESH_SECRET!)
+				? jose.base64url.decode(process.env.JWT_ACCESS_SECRET ?? "")
+				: jose.base64url.decode(process.env.JWT_REFRESH_SECRET ?? "")
 		);
 }
 
@@ -34,8 +34,8 @@ export async function verifyAndDecodeToken(
 		const { payload } = await jose.jwtVerify(
 			token,
 			type === "ACCESS"
-				? jose.base64url.decode(process.env.JWT_ACCESS_SECRET!)
-				: jose.base64url.decode(process.env.JWT_REFRESH_SECRET!)
+				? jose.base64url.decode(process.env.JWT_ACCESS_SECRET ?? "")
+				: jose.base64url.decode(process.env.JWT_REFRESH_SECRET ?? "")
 		);
 
 		// Ensure payload is not null and has the expected userId property
@@ -82,7 +82,7 @@ export async function refreshAccessToken(
 	try {
 		const { payload } = await jose.jwtVerify(
 			refreshToken,
-			jose.base64url.decode(process.env.JWT_REFRESH_SECRET!)
+			jose.base64url.decode(process.env.JWT_REFRESH_SECRET ?? "")
 		);
 
 		// Ensure payload is not null and has the expected userId property

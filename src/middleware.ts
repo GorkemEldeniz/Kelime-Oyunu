@@ -1,6 +1,7 @@
-import { ACCESS_TOKEN_MAX_AGE, COOKIE_CONFIG } from "@/config/auth";
+import { COOKIE_CONFIG } from "@/config/auth";
 import { generateToken } from "@/services/auth/token-service";
 import * as jose from "jose";
+import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -26,8 +27,9 @@ export async function middleware(request: NextRequest) {
 	const isAuthRoute = authPaths.includes(pathname);
 
 	// Get tokens
-	const accessToken = request.cookies.get(ACCESS_TOKEN_NAME)?.value;
-	const refreshToken = request.cookies.get(REFRESH_TOKEN_NAME)?.value;
+	const cookieStore = await cookies();
+	const accessToken = cookieStore.get(ACCESS_TOKEN_NAME)?.value;
+	const refreshToken = cookieStore.get(REFRESH_TOKEN_NAME)?.value;
 
 	// If the route is protected, check if the user is authenticated
 	if (isProtectedRoute) {
@@ -42,7 +44,7 @@ export async function middleware(request: NextRequest) {
 			// Verify access token
 			const { payload: accessPayload } = await jose.jwtVerify(
 				accessToken,
-				jose.base64url.decode(process.env.JWT_ACCESS_SECRET!)
+				jose.base64url.decode(process.env.JWT_ACCESS_SECRET ?? "")
 			);
 
 			// If access token is valid, continue
@@ -61,7 +63,7 @@ export async function middleware(request: NextRequest) {
 				// Verify refresh token
 				const { payload: refreshPayload } = await jose.jwtVerify(
 					refreshToken,
-					jose.base64url.decode(process.env.JWT_REFRESH_SECRET!)
+					jose.base64url.decode(process.env.JWT_REFRESH_SECRET ?? "")
 				);
 
 				if (!refreshPayload || typeof refreshPayload.userId !== "number") {
@@ -72,17 +74,12 @@ export async function middleware(request: NextRequest) {
 				const userId = refreshPayload.userId as number;
 				const newAccessToken = await generateToken(userId, "ACCESS");
 
-				// Create a response that continues to the requested page
-				const response = NextResponse.next();
-
 				// Set the new access token as a cookie in the response
-				response.cookies.set(ACCESS_TOKEN_NAME, newAccessToken, {
+				cookieStore.set(ACCESS_TOKEN_NAME, newAccessToken, {
 					...COOKIE_CONFIG,
-					maxAge: Math.floor(ACCESS_TOKEN_MAX_AGE / 1000), // Convert ms to seconds for cookies
-					path: "/",
 				});
 
-				return response;
+				return NextResponse.next();
 			} catch (error) {
 				// Refresh token is invalid, redirect to login
 				console.error("Refresh token verification error:", error);
@@ -96,7 +93,7 @@ export async function middleware(request: NextRequest) {
 			// Verify the access token is valid before redirecting
 			await jose.jwtVerify(
 				accessToken,
-				jose.base64url.decode(process.env.JWT_ACCESS_SECRET!)
+				jose.base64url.decode(process.env.JWT_ACCESS_SECRET ?? "")
 			);
 
 			// redirect where it came from
