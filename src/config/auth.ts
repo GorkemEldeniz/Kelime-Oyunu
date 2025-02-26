@@ -22,5 +22,5 @@ export const COOKIE_CONFIG = {
 	sameSite: "strict" as const,
 };
 
-export const ACCESS_TOKEN_MAX_AGE = 60 * 60; // 1 hour
-export const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24; // 1 day
+export const ACCESS_TOKEN_MAX_AGE = 60 * 60 * 1000; // 1 hour
+export const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 1000; // 1 day
