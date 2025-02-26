@@ -1,6 +1,6 @@
 "use server";
 
-import { REFRESH_TOKEN_MAX_AGE } from "@/config/auth";
+import { REFRESH_TOKEN_MAX_AGE } from "@/constants";
 import { db } from "@/lib/db";
 import { CreateUserResult } from "@/types/auth";
 import { SignUpInput } from "@/validations/auth";

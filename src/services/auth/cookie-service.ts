@@ -1,10 +1,7 @@
 "use server";
 
-import {
-	ACCESS_TOKEN_MAX_AGE,
-	COOKIE_CONFIG,
-	REFRESH_TOKEN_MAX_AGE,
-} from "@/config/auth";
+import { COOKIE_CONFIG } from "@/config/auth";
+import { ACCESS_TOKEN_MAX_AGE, REFRESH_TOKEN_MAX_AGE } from "@/constants";
 import { cookies } from "next/headers";
 
 export async function setAuthCookies(

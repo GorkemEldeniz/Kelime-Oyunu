@@ -1,7 +1,4 @@
-import {
-	ACCESS_TOKEN_EXPIRES_IN,
-	REFRESH_TOKEN_EXPIRES_IN,
-} from "@/config/auth";
+import { ACCESS_TOKEN_EXPIRES_IN, REFRESH_TOKEN_EXPIRES_IN } from "@/constants";
 import { db } from "@/lib/db";
 import { TokenType } from "@/types/auth";
 import * as jose from "jose";

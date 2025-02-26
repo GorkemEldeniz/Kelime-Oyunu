@@ -51,8 +51,8 @@ dependencies:
     specifier: ^12.0.6
     version: 12.4.2(react-dom@19.0.0)(react@19.0.0)
   jose:
-    specifier: ^5.9.6
-    version: 5.9.6
+    specifier: ^6.0.8
+    version: 6.0.8
   lucide-react:
     specifier: ^0.471.2
     version: 0.471.2(react@19.0.0)
@@ -3811,8 +3811,8 @@ packages:
     resolution: {integrity: sha512-/imKNG4EbWNrVjoNC/1H5/9GFy+tqjGBHCaSsN+P2RnPqjsLmv6UD3Ej+Kj8nBWaRAwyk7kK5ZUc+OEatnTR3A==}
     hasBin: true
 
-  /jose@5.9.6:
-    resolution: {integrity: sha512-AMlnetc9+CV9asI19zHmrgS/WYsWUwCn2R7RzlbJWD7F9eWYUTGyBmU9o6PxngtLGOiDGPRu+Uc4fhKzbpteZQ==}
+  /jose@6.0.8:
+    resolution: {integrity: sha512-EyUPtOKyTYq+iMOszO42eobQllaIjJnwkZ2U93aJzNyPibCy7CEvT9UQnaCVB51IAd49gbNdCew1c0LcLTCB2g==}
     dev: false
 
   /js-beautify@1.15.3:

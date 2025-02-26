@@ -1,6 +1,6 @@
 "use server";
 
-import { REFRESH_TOKEN_MAX_AGE, RESET_TOKEN_EXPIRES_IN } from "@/config/auth";
+import { REFRESH_TOKEN_MAX_AGE, RESET_TOKEN_EXPIRES_IN } from "@/constants";
 import { db } from "@/lib/db";
 import { actionClient } from "@/lib/safe-action";
 import {

@@ -1,4 +1,5 @@
-import { ACCESS_TOKEN_MAX_AGE, COOKIE_CONFIG } from "@/config/auth";
+import { COOKIE_CONFIG } from "@/config/auth";
+import { ACCESS_TOKEN_MAX_AGE } from "@/constants";
 import { generateToken } from "@/services/auth/token-service";
 import * as jose from "jose";
 import type { NextRequest } from "next/server";
@@ -112,3 +113,7 @@ export async function middleware(request: NextRequest) {
 
 	return NextResponse.next();
 }
+// match all paths except home page
+export const config = {
+	matcher: ["/((?!api|_next/static|_next/image|favicon.ico|/).*)"],
+};
