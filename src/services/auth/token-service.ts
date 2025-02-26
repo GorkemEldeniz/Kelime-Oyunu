@@ -2,8 +2,6 @@
 
 import {
 	ACCESS_TOKEN_EXPIRES_IN,
-	JWT_ACCESS_SECRET,
-	JWT_REFRESH_SECRET,
 	REFRESH_TOKEN_EXPIRES_IN,
 } from "@/config/auth";
 import { db } from "@/lib/db";
@@ -23,7 +21,11 @@ export async function generateToken(
 		.setExpirationTime(
 			type === "ACCESS" ? ACCESS_TOKEN_EXPIRES_IN : REFRESH_TOKEN_EXPIRES_IN
 		)
-		.sign(type === "ACCESS" ? JWT_ACCESS_SECRET : JWT_REFRESH_SECRET);
+		.sign(
+			type === "ACCESS"
+				? jose.base64url.decode(process.env.JWT_ACCESS_SECRET!)
+				: jose.base64url.decode(process.env.JWT_REFRESH_SECRET!)
+		);
 }
 
 export async function verifyAndDecodeToken(
@@ -33,7 +35,9 @@ export async function verifyAndDecodeToken(
 	try {
 		const { payload } = await jose.jwtVerify(
 			token,
-			type === "ACCESS" ? JWT_ACCESS_SECRET : JWT_REFRESH_SECRET
+			type === "ACCESS"
+				? jose.base64url.decode(process.env.JWT_ACCESS_SECRET!)
+				: jose.base64url.decode(process.env.JWT_REFRESH_SECRET!)
 		);
 
 		// Ensure payload is not null and has the expected userId property
@@ -78,7 +82,10 @@ export async function refreshAccessToken(
 	refreshToken: string
 ): Promise<string | null> {
 	try {
-		const { payload } = await jose.jwtVerify(refreshToken, JWT_REFRESH_SECRET);
+		const { payload } = await jose.jwtVerify(
+			refreshToken,
+			jose.base64url.decode(process.env.JWT_REFRESH_SECRET!)
+		);
 
 		// Ensure payload is not null and has the expected userId property
 		if (!payload || typeof payload.userId !== "number") {

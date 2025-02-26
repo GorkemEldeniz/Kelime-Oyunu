@@ -1,10 +1,6 @@
 "use server";
 
-import {
-	JWT_RESET_SECRET,
-	REFRESH_TOKEN_MAX_AGE,
-	RESET_TOKEN_EXPIRES_IN,
-} from "@/config/auth";
+import { REFRESH_TOKEN_MAX_AGE, RESET_TOKEN_EXPIRES_IN } from "@/config/auth";
 import { db } from "@/lib/db";
 import { actionClient } from "@/lib/safe-action";
 import {
@@ -22,7 +18,7 @@ import {
 } from "@/validations/auth";
 import { render } from "@react-email/render";
 import { hash } from "bcryptjs";
-import { jwtVerify, SignJWT } from "jose";
+import * as jose from "jose";
 import { Resend } from "resend";
 import ResetPasswordEmail from "../emails/reset-password";
 
@@ -162,11 +158,11 @@ export const requestPasswordReset = actionClient
 				};
 			}
 
-			const token = await new SignJWT({ sub: user.id.toString() })
+			const token = await new jose.SignJWT({ sub: user.id.toString() })
 				.setProtectedHeader({ alg: "HS256" })
 				.setIssuedAt()
 				.setExpirationTime(RESET_TOKEN_EXPIRES_IN)
-				.sign(JWT_RESET_SECRET);
+				.sign(jose.base64url.decode(process.env.JWT_RESET_SECRET!));
 
 			const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
 
@@ -203,7 +199,10 @@ export const resetPassword = actionClient
 	.schema(resetPasswordSchema)
 	.action(async ({ parsedInput: { token, password } }) => {
 		try {
-			const { payload } = await jwtVerify(token, JWT_RESET_SECRET);
+			const { payload } = await jose.jwtVerify(
+				token,
+				jose.base64url.decode(process.env.JWT_RESET_SECRET!)
+			);
 			const userId = payload.sub;
 
 			if (!userId) {
