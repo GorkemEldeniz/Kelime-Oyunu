@@ -1,5 +1,6 @@
+import { ACCESS_TOKEN_MAX_AGE } from "@/config/auth";
 import {
-	generateAndStoreTokens,
+	generateToken,
 	verifyAndDecodeToken,
 } from "@/services/auth/token-service";
 import type { NextRequest } from "next/server";
@@ -62,7 +63,23 @@ export async function middleware(request: NextRequest) {
 				return NextResponse.redirect(redirectUrl);
 			}
 
-			await generateAndStoreTokens(decodedRefreshToken.userId as number);
+			// Generate new tokens manually instead of using generateAndStoreTokens
+			// which uses server actions that don't work in middleware
+			const userId = decodedRefreshToken.userId as number;
+			const newAccessToken = await generateToken(userId, "ACCESS");
+
+			// Create a response that continues to the requested page
+			const response = NextResponse.next();
+
+			// Set the new tokens as cookies in the response
+			response.cookies.set(ACCESS_TOKEN_NAME, newAccessToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "strict",
+				maxAge: ACCESS_TOKEN_MAX_AGE / 1000, // Convert ms to seconds for cookies
+			});
+
+			return response;
 		}
 	}
 
