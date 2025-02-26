@@ -1,5 +1,3 @@
-"use server";
-
 import {
 	ACCESS_TOKEN_EXPIRES_IN,
 	REFRESH_TOKEN_EXPIRES_IN,
