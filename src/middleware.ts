@@ -1,8 +1,6 @@
 import { ACCESS_TOKEN_MAX_AGE } from "@/config/auth";
-import {
-	generateToken,
-	verifyAndDecodeToken,
-} from "@/services/auth/token-service";
+import { generateToken } from "@/services/auth/token-service";
+import * as jose from "jose";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -44,28 +42,28 @@ export async function middleware(request: NextRequest) {
 			return NextResponse.redirect(redirectUrl);
 		}
 
-		const decodedAccessToken = await verifyAndDecodeToken(
+		const { payload: accessPayload } = await jose.jwtVerify(
 			accessToken,
-			"ACCESS"
+			jose.base64url.decode(process.env.JWT_ACCESS_SECRET!)
 		);
 
-		if (!decodedAccessToken) {
+		if (!accessPayload || typeof accessPayload.userId !== "number") {
 			if (!refreshToken) {
 				return NextResponse.redirect(redirectUrl);
 			}
 
-			const decodedRefreshToken = await verifyAndDecodeToken(
+			const { payload: refreshPayload } = await jose.jwtVerify(
 				refreshToken,
-				"REFRESH"
+				jose.base64url.decode(process.env.JWT_REFRESH_SECRET!)
 			);
 
-			if (!decodedRefreshToken) {
+			if (!refreshPayload || typeof refreshPayload.userId !== "number") {
 				return NextResponse.redirect(redirectUrl);
 			}
 
 			// Generate new tokens manually instead of using generateAndStoreTokens
 			// which uses server actions that don't work in middleware
-			const userId = decodedRefreshToken.userId as number;
+			const userId = refreshPayload.userId as number;
 			const newAccessToken = await generateToken(userId, "ACCESS");
 
 			// Create a response that continues to the requested page
