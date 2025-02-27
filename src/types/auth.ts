@@ -1,8 +1,7 @@
 export type TokenType = "ACCESS" | "REFRESH";
 
 export interface JWTPayload {
-	userId: number;
-	type: TokenType;
+	id: number;
 }
 
 export interface CreateUserResult {

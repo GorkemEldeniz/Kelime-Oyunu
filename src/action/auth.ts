@@ -2,6 +2,7 @@
 
 import { ACCESS_TOKEN_EXPIRES_IN, RESET_TOKEN_EXPIRES_IN } from "@/constants";
 import { db } from "@/lib/db";
+import { resend } from "@/lib/resend";
 import { actionClient } from "@/lib/safe-action";
 import { clearAuthCookies } from "@/services/auth/cookie-service";
 import { verifyPassword } from "@/services/auth/password-service";
@@ -16,7 +17,6 @@ import {
 import { render } from "@react-email/render";
 import { hash } from "bcryptjs";
 import { cookies } from "next/headers";
-import { Resend } from "resend";
 import ResetPasswordEmail from "../emails/reset-password";
 
 export const signIn = actionClient
@@ -147,8 +147,6 @@ export const signOut = actionClient.action(async () => {
 		};
 	}
 });
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const requestPasswordReset = actionClient
 	.schema(forgotPasswordSchema)

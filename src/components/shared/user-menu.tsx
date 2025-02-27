@@ -14,10 +14,10 @@ import { toast } from "sonner";
 import { Button } from "../ui/button";
 
 interface UserMenuProps {
-	email: string;
+	name: string;
 }
 
-export function UserMenu({ email }: UserMenuProps) {
+export function UserMenu({ name }: UserMenuProps) {
 	const router = useRouter();
 	const { execute: executeSignOut, isExecuting } = useAction(signOut, {
 		onSuccess: () => {
@@ -47,7 +47,7 @@ export function UserMenu({ email }: UserMenuProps) {
 					className='flex flex-col items-start cursor-pointer'
 				>
 					<span className='text-sm font-medium'>Hesap</span>
-					<span className='text-xs text-muted-foreground'>{email}</span>
+					<span className='text-xs text-muted-foreground'>{name}</span>
 				</DropdownMenuItem>
 				<DropdownMenuItem
 					onClick={() => router.push("/standings")}

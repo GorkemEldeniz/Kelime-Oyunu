@@ -3,23 +3,23 @@
 import { getTurkishDayBoundaries, getTurkishTime } from "@/helpers";
 import { db } from "@/lib/db";
 import { actionClient } from "@/lib/safe-action";
-import { auth } from "@/services/auth";
+import { getUserFromCookie } from "@/services/auth/cookie-service";
 import { saveGameRecordSchema } from "@/validations/game";
 import { revalidatePath } from "next/cache";
-
 const ITEMS_PER_PAGE = 10;
 
 // Check if user has played today
 export async function hasPlayedToday() {
-	const session = await auth();
-	if (!session) return false;
+	const user = await getUserFromCookie();
+
+	if (!user) return false;
 
 	const { today, tomorrow } = getTurkishDayBoundaries();
 
 	// Check if user has played within the current time range
 	const record = await db.gameRecord.findFirst({
 		where: {
-			userId: session.user.id,
+			userId: user.id as number,
 			playedAt: {
 				gte: today,
 				lt: tomorrow,
@@ -32,12 +32,12 @@ export async function hasPlayedToday() {
 
 // Get user's last game record
 export async function getLastGameRecord() {
-	const session = await auth();
-	if (!session) return null;
+	const user = await getUserFromCookie();
+	if (!user) return null;
 
 	const record = await db.gameRecord.findFirst({
 		where: {
-			userId: session.user.id,
+			userId: user.id as number,
 		},
 		orderBy: {
 			playedAt: "desc",
@@ -56,8 +56,8 @@ export async function getLastGameRecord() {
 export const saveGameRecord = actionClient
 	.schema(saveGameRecordSchema)
 	.action(async ({ parsedInput: { score, timeLeft, questionsCount } }) => {
-		const session = await auth();
-		if (!session) return null;
+		const user = await getUserFromCookie();
+		if (!user) return null;
 
 		// Check if user has already played today
 		const hasPlayed = await hasPlayedToday();
@@ -65,7 +65,7 @@ export const saveGameRecord = actionClient
 
 		const record = await db.gameRecord.create({
 			data: {
-				userId: session.user.id,
+				userId: user.id as number,
 				score,
 				timeLeft,
 				questionsCount,
@@ -81,15 +81,15 @@ export const saveGameRecord = actionClient
 
 // Get user's game history
 export async function getUserGameHistory(page = 1) {
-	const session = await auth();
-	if (!session) return { games: [], totalPages: 0 };
+	const user = await getUserFromCookie();
+	if (!user) return { games: [], totalPages: 0 };
 
 	const skip = (page - 1) * ITEMS_PER_PAGE;
 
 	const [games, total] = await Promise.all([
 		db.gameRecord.findMany({
 			where: {
-				userId: session.user.id,
+				userId: user.id as number,
 			},
 			orderBy: {
 				playedAt: "desc",
@@ -99,7 +99,7 @@ export async function getUserGameHistory(page = 1) {
 		}),
 		db.gameRecord.count({
 			where: {
-				userId: session.user.id,
+				userId: user.id as number,
 			},
 		}),
 	]);
@@ -261,12 +261,12 @@ export async function getAllTimeStandings(page = 1) {
 // Get user's avarage score and highest score
 export const getUserStatsAction = actionClient.action(async () => {
 	try {
-		const session = await auth();
-		if (!session) return { averageScore: 0, highestScore: 0 };
+		const user = await getUserFromCookie();
+		if (!user) return { averageScore: 0, highestScore: 0 };
 
 		const records = await db.gameRecord.findMany({
 			where: {
-				userId: session.user.id,
+				userId: user.id as number,
 			},
 			orderBy: {
 				score: "desc",

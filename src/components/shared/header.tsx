@@ -5,10 +5,13 @@ import { ThemeToggle } from "./theme-toggle";
 import { UserMenu } from "./user-menu";
 
 interface HeaderProps {
-	userEmail: string;
+	user: {
+		email: string;
+		username: string;
+	};
 }
 
-export function Header({ userEmail }: HeaderProps) {
+export function Header({ user }: HeaderProps) {
 	return (
 		<header className='border-b'>
 			<div className='container mx-auto px-4 h-16 flex items-center justify-between'>
@@ -21,7 +24,7 @@ export function Header({ userEmail }: HeaderProps) {
 
 				<div className='flex items-center gap-4'>
 					<ThemeToggle />
-					<UserMenu email={userEmail} />
+					<UserMenu name={user.username ?? user.email} />
 				</div>
 			</div>
 		</header>
