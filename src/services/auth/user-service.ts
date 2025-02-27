@@ -1,11 +1,9 @@
 "use server";
 
-import { REFRESH_TOKEN_MAX_AGE } from "@/constants";
 import { db } from "@/lib/db";
-import { CreateUserResult } from "@/types/auth";
 import { SignUpInput } from "@/validations/auth";
 import { hashPassword } from "./password-service";
-import { generateToken } from "./token-service";
+
 export async function getUserByEmail(email: string) {
 	return db.user.findUnique({
 		where: { email },
@@ -18,7 +16,8 @@ export async function getUserById(id: number) {
 	});
 }
 
-export async function createUser(data: SignUpInput): Promise<CreateUserResult> {
+export async function createUser(data: SignUpInput) {
+	// hash password
 	const hashedPassword = await hashPassword(data.password);
 
 	const user = await db.user.create({
@@ -27,33 +26,7 @@ export async function createUser(data: SignUpInput): Promise<CreateUserResult> {
 			username: data.username,
 			password: hashedPassword,
 		},
-		select: {
-			id: true,
-			email: true,
-			username: true,
-		},
 	});
 
-	const [accessToken, refreshToken] = await Promise.all([
-		generateToken(user.id, "ACCESS"),
-		generateToken(user.id, "REFRESH"),
-	]);
-
-	// create new refresh token
-	await db.token.create({
-		data: {
-			userId: user.id,
-			type: "REFRESH",
-			token: refreshToken,
-			expiresAt: new Date(Date.now() + REFRESH_TOKEN_MAX_AGE),
-		},
-	});
-
-	return {
-		user,
-		tokens: {
-			accessToken,
-			refreshToken,
-		},
-	};
+	return user.id;
 }

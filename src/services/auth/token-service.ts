@@ -1,121 +1,41 @@
-import { ACCESS_TOKEN_EXPIRES_IN, REFRESH_TOKEN_EXPIRES_IN } from "@/constants";
-import { db } from "@/lib/db";
-import { TokenType } from "@/types/auth";
+import { ACCESS_TOKEN_EXPIRES_IN } from "@/constants";
 import * as jose from "jose";
-import { setAuthCookies } from "./cookie-service";
 
-export async function generateToken(
-	userId: number,
-	type: TokenType
-): Promise<string> {
+export async function generateAccessToken(userId: number): Promise<string> {
 	// Ensure we're creating a valid payload object
-	const payload = { userId, type };
+	const payload = { id: userId };
 
 	return new jose.SignJWT(payload)
 		.setProtectedHeader({ alg: "HS256" })
-		.setExpirationTime(
-			type === "ACCESS" ? ACCESS_TOKEN_EXPIRES_IN : REFRESH_TOKEN_EXPIRES_IN
-		)
-		.sign(
-			type === "ACCESS"
-				? new TextEncoder().encode(process.env.JWT_ACCESS_SECRET || "")
-				: new TextEncoder().encode(process.env.JWT_REFRESH_SECRET || "")
-		);
+		.setExpirationTime(ACCESS_TOKEN_EXPIRES_IN)
+		.sign(new TextEncoder().encode(process.env.JWT_ACCESS_SECRET));
 }
 
-export async function verifyAndDecodeToken(
+export async function generateToken(
+	payload: jose.JWTPayload,
+	secret: string,
+	expiresIn: string
+): Promise<string> {
+	return new jose.SignJWT(payload)
+		.setProtectedHeader({ alg: "HS256" })
+		.setIssuedAt()
+		.setExpirationTime(expiresIn)
+		.sign(new TextEncoder().encode(secret));
+}
+
+export async function verifyToken(
 	token: string,
-	type: TokenType
+	secret: string
 ): Promise<jose.JWTPayload | null> {
 	try {
 		const { payload } = await jose.jwtVerify(
 			token,
-			type === "ACCESS"
-				? new TextEncoder().encode(process.env.JWT_ACCESS_SECRET || "")
-				: new TextEncoder().encode(process.env.JWT_REFRESH_SECRET || "")
+			new TextEncoder().encode(secret)
 		);
-
-		// Ensure payload is not null and has the expected userId property
-		if (!payload || typeof payload.userId !== "number") {
-			console.error("Invalid token payload:", payload);
-			return null;
-		}
 
 		return payload;
 	} catch (error) {
 		console.error("Token verification error:", error);
 		return null;
 	}
-}
-
-export async function cleanupExpiredTokens() {
-	await db.token.deleteMany({
-		where: {
-			expiresAt: {
-				lt: new Date(),
-			},
-		},
-	});
-}
-
-export async function invalidateAllRefreshTokens(userId: number) {
-	await db.token.updateMany({
-		where: {
-			userId,
-			type: "REFRESH",
-			expiresAt: {
-				gt: new Date(),
-			},
-		},
-		data: {
-			expiresAt: new Date(),
-		},
-	});
-}
-
-export async function refreshAccessToken(
-	refreshToken: string
-): Promise<string | null> {
-	try {
-		const { payload } = await jose.jwtVerify(
-			refreshToken,
-			new TextEncoder().encode(process.env.JWT_REFRESH_SECRET || "")
-		);
-
-		// Ensure payload is not null and has the expected userId property
-		if (!payload || typeof payload.userId !== "number") {
-			console.error("Invalid refresh token payload:", payload);
-			return null;
-		}
-
-		return generateToken(payload.userId, "ACCESS");
-	} catch (error) {
-		console.error("Error refreshing access token:", error);
-		return null;
-	}
-}
-
-export async function generateAndStoreTokens(userId: number) {
-	const accessToken = await generateToken(userId, "ACCESS");
-	const refreshToken = await generateToken(userId, "REFRESH");
-
-	// delete refresh token for the user
-	await db.token.deleteMany({
-		where: {
-			userId,
-			type: "REFRESH",
-		},
-	});
-
-	// create a new refresh token
-	await db.token.create({
-		data: {
-			userId,
-			token: refreshToken,
-			type: "REFRESH",
-			expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRES_IN),
-		},
-	});
-
-	setAuthCookies(accessToken, refreshToken);
 }

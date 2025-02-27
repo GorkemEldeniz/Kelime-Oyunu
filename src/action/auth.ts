@@ -1,14 +1,11 @@
 "use server";
 
-import { REFRESH_TOKEN_MAX_AGE, RESET_TOKEN_EXPIRES_IN } from "@/constants";
+import { ACCESS_TOKEN_EXPIRES_IN, RESET_TOKEN_EXPIRES_IN } from "@/constants";
 import { db } from "@/lib/db";
 import { actionClient } from "@/lib/safe-action";
-import {
-	clearAuthCookies,
-	setAuthCookies,
-} from "@/services/auth/cookie-service";
-import { generateAuthTokens } from "@/services/auth/index";
+import { clearAuthCookies } from "@/services/auth/cookie-service";
 import { verifyPassword } from "@/services/auth/password-service";
+import { generateToken, verifyToken } from "@/services/auth/token-service";
 import { createUser, getUserByEmail } from "@/services/auth/user-service";
 import {
 	forgotPasswordSchema,
@@ -18,7 +15,7 @@ import {
 } from "@/validations/auth";
 import { render } from "@react-email/render";
 import { hash } from "bcryptjs";
-import * as jose from "jose";
+import { cookies } from "next/headers";
 import { Resend } from "resend";
 import ResetPasswordEmail from "../emails/reset-password";
 
@@ -48,28 +45,21 @@ export const signIn = actionClient
 			}
 
 			// Generate tokens
-			const { accessToken, refreshToken } = await generateAuthTokens(user.id);
-
-			// delete old refresh token for user
-			await db.token.deleteMany({
-				where: {
-					userId: user.id,
-					type: "REFRESH",
-				},
-			});
-
-			// create new refresh token
-			await db.token.create({
-				data: {
-					userId: user.id,
-					type: "REFRESH",
-					token: refreshToken,
-					expiresAt: new Date(Date.now() + REFRESH_TOKEN_MAX_AGE),
-				},
-			});
+			const accessToken = await generateToken(
+				{ id: user.id },
+				process.env.JWT_ACCESS_SECRET!,
+				ACCESS_TOKEN_EXPIRES_IN
+			);
 
 			// Set cookies
-			await setAuthCookies(accessToken, refreshToken);
+			const cookieStore = await cookies();
+
+			cookieStore.set("access_token", accessToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "lax",
+				expires: new Date(Date.now() + 1000 * 60 * 60 * 24), // a day
+			});
 
 			return {
 				success: true,
@@ -101,14 +91,28 @@ export const signUp = actionClient
 			}
 
 			// Create user with initial tokens
-			const { tokens } = await createUser({
+			const userId = await createUser({
 				email,
 				password,
 				username,
 			});
 
+			// generate token
+			const accessToken = await generateToken(
+				{ id: userId },
+				process.env.JWT_ACCESS_SECRET!,
+				ACCESS_TOKEN_EXPIRES_IN
+			);
+
 			// Set cookies
-			await setAuthCookies(tokens.accessToken, tokens.refreshToken);
+			const cookieStore = await cookies();
+
+			cookieStore.set("access_token", accessToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "lax",
+				expires: new Date(Date.now() + 1000 * 60 * 60 * 24), // a day
+			});
 
 			return {
 				success: true,
@@ -158,11 +162,11 @@ export const requestPasswordReset = actionClient
 				};
 			}
 
-			const token = await new jose.SignJWT({ sub: user.id.toString() })
-				.setProtectedHeader({ alg: "HS256" })
-				.setIssuedAt()
-				.setExpirationTime(RESET_TOKEN_EXPIRES_IN)
-				.sign(jose.base64url.decode(process.env.JWT_RESET_SECRET!));
+			const token = await generateToken(
+				{ id: user.id },
+				process.env.JWT_RESET_SECRET!,
+				RESET_TOKEN_EXPIRES_IN
+			);
 
 			const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
 
@@ -199,11 +203,9 @@ export const resetPassword = actionClient
 	.schema(resetPasswordSchema)
 	.action(async ({ parsedInput: { token, password } }) => {
 		try {
-			const { payload } = await jose.jwtVerify(
-				token,
-				jose.base64url.decode(process.env.JWT_RESET_SECRET!)
-			);
-			const userId = payload.sub;
+			const payload = await verifyToken(token, process.env.JWT_RESET_SECRET!);
+
+			const userId = payload?.id as number;
 
 			if (!userId) {
 				return {

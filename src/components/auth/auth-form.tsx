@@ -25,7 +25,7 @@ interface AuthFormProps extends React.HTMLAttributes<HTMLDivElement> {
 export function AuthForm({ type, className, ...props }: AuthFormProps) {
 	const router = useRouter();
 	const searchParams = useSearchParams();
-	const redirect = searchParams.get("redirect");
+	const redirect = searchParams.get("redirectUrl");
 
 	const signInForm = useForm<SignInInput>({
 		resolver: zodResolver(signInSchema),

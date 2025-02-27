@@ -8,8 +8,8 @@ import { cookies } from "next/headers";
 export default async function Home() {
 	// Get auth status from cookie on server side
 	const cookieStore = await cookies();
-	const refreshToken = cookieStore.get("refresh_token");
-	const isAuthenticated = !!refreshToken?.value;
+	const accessToken = cookieStore.get("access_token");
+	const isAuthenticated = !!accessToken?.value;
 
 	return (
 		<div className='min-h-screen flex flex-col'>

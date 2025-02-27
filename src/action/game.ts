@@ -9,7 +9,7 @@ import { revalidatePath } from "next/cache";
 
 const ITEMS_PER_PAGE = 10;
 
-// Check if user has played within allowed time range (12:00-15:00 Turkish time)
+// Check if user has played today
 export async function hasPlayedToday() {
 	const session = await auth();
 	if (!session) return false;

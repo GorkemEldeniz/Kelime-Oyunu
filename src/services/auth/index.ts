@@ -1,77 +1,42 @@
 "use server";
 
-import { REFRESH_TOKEN_MAX_AGE } from "@/constants";
 import { db } from "@/lib/db";
 import { AuthUser } from "@/types/auth";
 import { cookies } from "next/headers";
-import { generateToken } from "./token-service";
-
-export async function generateAuthTokens(userId: number) {
-	const existingToken = await db.token.findFirst({
-		where: {
-			userId,
-			type: "REFRESH",
-			expiresAt: {
-				gt: new Date(),
-			},
-		},
-		orderBy: {
-			createdAt: "desc",
-		},
-	});
-
-	if (existingToken) {
-		const accessToken = await generateToken(userId, "ACCESS");
-		return { accessToken, refreshToken: existingToken.token };
-	}
-
-	const [accessToken, refreshToken] = await Promise.all([
-		generateToken(userId, "ACCESS"),
-		generateToken(userId, "REFRESH"),
-	]);
-
-	// store tokens in db
-	await db.token.create({
-		data: {
-			token: refreshToken,
-			userId,
-			type: "REFRESH",
-			expiresAt: new Date(Date.now() + REFRESH_TOKEN_MAX_AGE),
-		},
-	});
-
-	return { accessToken, refreshToken };
-}
+import { verifyToken } from "./token-service";
 
 export async function auth(): Promise<{ user: AuthUser } | null> {
 	try {
 		const cookieStore = await cookies();
-		const refreshToken = cookieStore.get("refresh_token")?.value;
+		const accessToken = cookieStore.get("access_token")?.value;
 
-		if (!refreshToken) {
+		if (!accessToken) {
 			return null;
 		}
 
-		const dbToken = await db.token.findUnique({
-			where: { token: refreshToken },
-			include: { user: true },
+		const payload = await verifyToken(
+			accessToken,
+			process.env.JWT_ACCESS_SECRET!
+		);
+
+		if (!payload) {
+			return null;
+		}
+
+		const user = await db.user.findUnique({
+			where: { id: payload.id as number },
 		});
 
-		if (!dbToken) {
-			console.error("Token not found in database");
-			return null;
-		}
-
-		if (dbToken.expiresAt < new Date()) {
-			console.error("Token has expired");
+		if (!user) {
+			console.error("User not found in database");
 			return null;
 		}
 
 		return {
 			user: {
-				id: dbToken.user.id,
-				email: dbToken.user.email,
-				username: dbToken.user.username,
+				id: user.id,
+				email: user.email,
+				username: user.username,
 			},
 		};
 	} catch (error) {

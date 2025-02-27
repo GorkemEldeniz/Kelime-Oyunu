@@ -1,9 +1,10 @@
 import {
-	findOrCreateGoogleUser,
+	createUserWithGoogle,
 	getGoogleToken,
 	getGoogleUserInfo,
 } from "@/action/google-auth";
-import { setAuthCookies } from "@/services/auth/cookie-service";
+import { ACCESS_TOKEN_MAX_AGE } from "@/constants";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -40,11 +41,19 @@ export async function GET(request: Request) {
 		// Get user info from Google
 		const googleUser = await getGoogleUserInfo(tokenResponse.access_token);
 
-		// Find or create user in our database
-		const { tokens } = await findOrCreateGoogleUser(googleUser);
+		// Find or create user in our database and generate token
+		const token = await createUserWithGoogle(googleUser);
 
 		// Set auth cookies
-		await setAuthCookies(tokens.accessToken, tokens.refreshToken);
+		const cookieStore = await cookies();
+
+		cookieStore.set("access_token", token, {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "lax" as const,
+			expires: new Date(Date.now() + ACCESS_TOKEN_MAX_AGE),
+			maxAge: ACCESS_TOKEN_MAX_AGE,
+		});
 
 		// Redirect to home page
 		return NextResponse.redirect(process.env.NEXT_PUBLIC_APP_URL!);

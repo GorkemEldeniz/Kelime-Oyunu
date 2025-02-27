@@ -1,7 +1,8 @@
 "use server";
 
+import { ACCESS_TOKEN_EXPIRES_IN } from "@/constants";
 import { db } from "@/lib/db";
-import { generateAuthTokens } from "@/services/auth";
+import { generateToken } from "@/services/auth/token-service";
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_SECRET;
@@ -98,8 +99,8 @@ export async function getGoogleUserInfo(
 	}
 }
 
-// Find or create user from Google data
-export async function findOrCreateGoogleUser(googleUser: GoogleUserInfo) {
+// Create user with Google data
+export async function createUserWithGoogle(googleUser: GoogleUserInfo) {
 	// First try to find user by Google ID
 	let user = await db.user.findUnique({
 		where: { googleId: googleUser.id },
@@ -143,7 +144,11 @@ export async function findOrCreateGoogleUser(googleUser: GoogleUserInfo) {
 	}
 
 	// Generate auth tokens
-	const tokens = await generateAuthTokens(user.id);
+	const tokens = await generateToken(
+		{ id: user.id },
+		process.env.JWT_ACCESS_SECRET!,
+		ACCESS_TOKEN_EXPIRES_IN
+	);
 
-	return { user, tokens };
+	return tokens;
 }
