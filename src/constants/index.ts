@@ -49,9 +49,5 @@ export const FEATURES = [
 	},
 ] as const;
 
-export const ACCESS_TOKEN_EXPIRES_IN = "1h"; // 1 hour
-export const REFRESH_TOKEN_EXPIRES_IN = "1d"; // 1 day
+export const ACCESS_TOKEN_EXPIRES_IN = "1d"; // 1 day
 export const RESET_TOKEN_EXPIRES_IN = "30m"; // 30 minutes
-
-export const ACCESS_TOKEN_MAX_AGE = 60 * 60 * 1000; // 1 hour
-export const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 1000; // 1 day
