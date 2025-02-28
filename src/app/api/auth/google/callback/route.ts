@@ -3,7 +3,6 @@ import {
 	getGoogleToken,
 	getGoogleUserInfo,
 } from "@/action/google-auth";
-import { ACCESS_TOKEN_MAX_AGE } from "@/constants";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -51,8 +50,7 @@ export async function GET(request: Request) {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === "production",
 			sameSite: "lax" as const,
-			expires: new Date(Date.now() + ACCESS_TOKEN_MAX_AGE),
-			maxAge: ACCESS_TOKEN_MAX_AGE,
+			expires: new Date(Date.now() + 1000 * 60 * 60 * 24), // 1 day
 		});
 
 		// Redirect to home page
