@@ -26,26 +26,22 @@ export async function middleware(request: NextRequest) {
 	const accessToken = request.cookies.get("access_token")?.value;
 	console.log(`[${requestId}] accessToken exists: ${!!accessToken}`);
 
-	if (isProtectedRoute) {
-		console.log(`[${requestId}] Handling protected route: ${pathname}`);
-		// Create redirect URL to sign-in page with full redirect parameters
-		const redirectUrl = new URL("/sign-in", request.url);
-		redirectUrl.searchParams.set("redirectUrl", href);
+	// Create redirect URL to sign-in page with full redirect parameters
+	const redirectUrl = new URL("/sign-in", request.url);
+	redirectUrl.searchParams.set("redirectUrl", href);
 
-		if (!accessToken) {
-			console.log(`[${requestId}] No access token, redirecting to sign-in`);
-			return NextResponse.redirect(redirectUrl);
-		}
+	// validate access token
+	try {
+		console.log(`[${requestId}] Verifying access token`);
+		const decoded = await verifyToken(
+			accessToken ?? "",
+			process.env.JWT_ACCESS_SECRET!
+		);
 
-		// validate access token
-		try {
-			console.log(`[${requestId}] Verifying access token`);
-			const decoded = await verifyToken(
-				accessToken,
-				process.env.JWT_ACCESS_SECRET!
-			);
+		if (isProtectedRoute) {
+			console.log(`[${requestId}] Handling protected route: ${pathname}`);
 
-			if (!decoded) {
+			if (!decoded?.id) {
 				console.log(`[${requestId}] Invalid token, redirecting to sign-in`);
 				return NextResponse.redirect(redirectUrl);
 			}
@@ -59,18 +55,13 @@ export async function middleware(request: NextRequest) {
 				`[${requestId}] Response created, returning NextResponse.next()`
 			);
 			return response;
-		} catch (error) {
-			console.error(`[${requestId}] Error verifying token:`, error);
-			return NextResponse.redirect(redirectUrl);
 		}
-	}
 
-	if (isAuthRoute && accessToken) {
-		console.log(`[${requestId}] Handling auth route with token: ${pathname}`);
-		// Check if there's a redirectUrl parameter and use it for redirection
-		const redirectPath = request.nextUrl.searchParams.get("redirectUrl");
-		if (redirectPath) {
-			try {
+		if (isAuthRoute && decoded) {
+			console.log(`[${requestId}] Handling auth route with token: ${pathname}`);
+			// Check if there's a redirectUrl parameter and use it for redirection
+			const redirectPath = request.nextUrl.searchParams.get("redirectUrl");
+			if (redirectPath) {
 				console.log(`[${requestId}] Found redirectUrl: ${redirectPath}`);
 				const originalUrl = new URL(redirectPath);
 				// Make sure we're not redirecting to an external site
@@ -83,19 +74,21 @@ export async function middleware(request: NextRequest) {
 					safeRedirectUrl.toString()
 				);
 				return NextResponse.redirect(safeRedirectUrl);
-			} catch (error) {
-				console.error(`[${requestId}] Error parsing redirectUrl:`, error);
-				return NextResponse.redirect(new URL("/", request.url));
 			}
+			console.log(
+				`[${requestId}] Authenticated user on auth route, redirecting to home`
+			);
+			return NextResponse.redirect(new URL("/", request.url));
 		}
-		console.log(
-			`[${requestId}] Authenticated user on auth route, redirecting to home`
-		);
-		return NextResponse.redirect(new URL("/", request.url));
-	}
 
-	console.log(`[${requestId}] No special handling needed, proceeding normally`);
-	return NextResponse.next();
+		console.log(
+			`[${requestId}] No special handling needed, proceeding normally`
+		);
+		return NextResponse.next();
+	} catch (error) {
+		console.error(`[${requestId}] Error verifying token:`, error);
+		return NextResponse.redirect(redirectUrl);
+	}
 }
 
 export const config = {
