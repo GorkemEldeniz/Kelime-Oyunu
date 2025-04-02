@@ -1,10 +1,10 @@
+import { hasPlayedToday } from "@/action/game";
 import { Footer } from "@/components/shared/footer";
 import { Header } from "@/components/shared/header";
 import { db } from "@/lib/db";
 import { verifyToken } from "@/services/auth/token-service";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-
 export default async function ProtectedLayout({
 	children,
 }: {
@@ -38,9 +38,11 @@ export default async function ProtectedLayout({
 		redirect("/sign-in");
 	}
 
+	const playedToday = await hasPlayedToday();
+
 	return (
 		<div className='min-h-screen flex flex-col'>
-			<Header user={user} />
+			<Header user={user} hasPlayedToday={playedToday} />
 			<main className='flex-1 container mx-auto px-4 py-8'>{children}</main>
 			<Footer />
 		</div>
