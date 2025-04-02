@@ -17,7 +17,7 @@ interface HeaderProps {
 export function Header({ user, hasPlayedToday }: HeaderProps) {
 	const pathname = usePathname();
 
-	const showPlayButton = pathname.startsWith("/game") || !hasPlayedToday;
+	const showPlayButton = !pathname.startsWith("/game") || !hasPlayedToday;
 
 	return (
 		<header className='border-b'>
